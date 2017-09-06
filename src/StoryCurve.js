@@ -3,7 +3,7 @@ import {select, event} from 'd3-selection';
 import {line} from 'd3-shape';
 import {max, sum} from 'd3-array';
 import {axisTop, axisLeft} from 'd3-axis';
-import {scaleLinear, scaleOrdinal, schemeCategory20} from 'd3-scale';
+import {scaleLinear, scaleOrdinal} from 'd3-scale';
 import {zoom, zoomTransform} from 'd3-zoom';
 import 'd3-tip'; //TODO: remove this dependency?
 
