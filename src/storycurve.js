@@ -7,12 +7,6 @@ import {scaleLinear, scaleOrdinal} from 'd3-scale';
 import {zoom, zoomTransform} from 'd3-zoom';
 import 'd3-tip'; //TODO: remove this dependency?
 
-// mouse events
-const ONZOOM = 'zoom';
-const ONMOUSECLICK = 'click';
-const ONMOUSEOVER = 'mouseover';
-const ONMOUSEOUT = 'mouseout';
-
 
 // private functions
 let helper = {
@@ -39,13 +33,15 @@ let helper = {
 export default class StoryCurve {
 
 	constructor(selector) {
-		this._container = selector ? select(selector) : null;
-		this._width = 800;
-		this._height = 300;
+		this.container = selector ? select(selector) : null;
+		let rect = this.container.node().getBoundingClientRect();
+
+		this._width = rect.width;
+		this._height = 350;
 		this._margin = {
-			top: 0,
-			left: 0,
-			right: 0,
+			top: 10,
+			left: 10,
+			right: 10,
 			bottom: 10
 		};
 		this._duration = 400; // animation duration
@@ -54,38 +50,45 @@ export default class StoryCurve {
 		this._xs = scaleLinear(); //x-scale
 		this._ys = scaleLinear(); //y-scale
 
-		this._cs = scaleOrdinal() //color scale for children
-			.range(['#00B5AD']);
+		this._childColor = scaleOrdinal() //color scale for children
+			.range(['#db2828','#f2711c','#fbbd08','#b5cc18',
+				'#21ba45','#00b5ad','#2185d0','#6435c9'])
+			.unknown('#9E9E9E');
 
-		this._csm1 = scaleOrdinal()//color scale for metadata1
-			.range(['#f2711c']);
-		this._csm2 = scaleOrdinal() //color scale for metadata2
-			.range(['#a333c8']);
+		this._bandColor = scaleOrdinal()//color scale for band
+			.range(['#eedaf1','#fad1df','#cfe8fc','#daddf1'])
+			.unknown('rgba(0,0,0, 0.0)');
+		this._backdropColor = scaleOrdinal() //color scale for backdrop
+			.range(['#CFD8DC', '#90A4AE', '#607D8B'])
+			.unknown('rgba(0,0,0, 0.0)');
 
 		this._xaxis = axisTop();
 		this._yaxis = axisLeft();
-		this._xtitle = 'Narrative order →';
-		this._ytitle = '← Story order';
+		this._xaxisTitle = 'Narrative order →';
+		this._yaxisTitle = '← Story order';
 
-		this._palette = ['#00B5AD'];
+		// this._palette = ['#00B5AD'];
 
 		this._listners = new Map();//event listeners
 
 		this._highlights = []; //columns to highlight
+
+		this._showBand = false;
+		this._showBackdrop = false;
+		this._showChildren = false;
 
 		//TODO: remove dependency on d3.tip
 		this._tip = d3.tip()
 			.attr('class', 'd3-tip')
 			.offset([0, 10])
 			.direction('e')
-			.html(this._tipFormat);
+			.html(this._tooltipFormat);
 	}
 	draw(data) {
-		if (this._container.empty()) {
+		if (this.container.empty()) {
 			return;
 		}
-
-		this._container.datum(data);
+		this.container.datum(data);
 
 		// console.log('---------- StoryCurve ----------');
 		let width = this._width - this._margin.left - this._margin.right;
@@ -95,9 +98,9 @@ export default class StoryCurve {
 		let markHeight = 8; // variable width, fixed height
 
 		// create root container
-		let svg = this._container.select('svg');
+		let svg = this.container.select('svg');
 		if (svg.empty()) { // init
-			svg = this._container.append('svg');
+			svg = this.container.append('svg');
 			svg.append('g')
 				.attr('class', 'visarea')
 				.append('defs')
@@ -131,25 +134,67 @@ export default class StoryCurve {
 		this._xs.domain([0, sum(data, this._size)])
 			.range([xpadding, width]);
 
-		this._ys.domain([0, max(data, this._yOrder)])
+		this._ys.domain([0, max(data, this._y)])
 			.range([ypadding, height - markHeight]);
 
-		// let categories = set(data.reduce((acc, d)=>
-		// 	acc.concat(this._children(d).map(
-		// 		c=>this._childCategory(c))),[])).values();
-		// // console.log(categories);
-		// this._cs.domain(categories.sort())
-		// 	.range(this._palette);
-
+		// set default domains for color scale
+		if (this._showChildren==false){
+			this.___children = this._children;//backup
+			this._children = ()=>['Scene'];
+			this._childColor.range(['#00BCD4']);
+		}else{
+			if (this.___children){
+				this._children = this.___children;
+			}
+		}
+		//children
+		if (this._childColor.domain().length==0){
+			let categories = {};
+			data.map(d=>
+				this._children(d).map(
+					c=>(this._child(c) in categories)?
+					categories[this._child(c)]++:
+					(categories[this._child(c)]=1))
+				);
+			categories = Object.entries(categories)
+				.sort((a,b)=>b[1]-a[1])
+				.map(d=>d[0])
+				.slice(0,this._childColor.range().length);
+			this._childColor.domain(categories);
+		}
+		// band
+		if (this._bandColor.domain().length==0){
+			let categories = {};
+			data.map(d=>(this._band(d) in categories)?
+				categories[this._band(d)]++:
+				(categories[this._band(d)]=1));
+			categories = Object.entries(categories)
+				.sort((a,b)=>b[1]-a[1])
+				.map(d=>d[0])
+				.slice(0,this._bandColor.range().length);
+			this._bandColor.domain(categories);
+		}
+		// backdrop
+		if (this._backdropColor.domain().length==0){
+			let categories = {};
+			data.map(d=>(this._backdrop(d) in categories)?
+				categories[this._backdrop(d)]++:
+				(categories[this._backdrop(d)]=1));
+			categories = Object.entries(categories)
+				.sort((a,b)=>b[1]-a[1])
+				.map(d=>d[0])
+				.slice(0,this._backdropColor.range().length);
+			this._backdropColor.domain(categories);
+		}
 		// compute story curve layout
 		let cursor = 0;
 		let markData = data.sort((d1, d2) => {// sort by x-order
-			return this._xOrder(d1) - this._xOrder(d2);
+			return this._x(d1) - this._x(d2);
 		}).map(d => {
 			let x0 = this._xs(cursor);
 			cursor += this._size(d); //move cursor by width (e.g., scene length)
 			let x1 = this._xs(cursor);//width = x1 - x0
-			let y = this._ys(this._yOrder(d));
+			let y = this._ys(this._y(d));
 
 			// children layout in each scene
 			let children = this._children(d).map((c, i) => {
@@ -167,9 +212,9 @@ export default class StoryCurve {
 				x0: x0,
 				x1: x1,
 				y: y,
-				id: this._xOrder(d),//unique id (no duplicate order allowed)
-				xo: this._xOrder(d),
-				yo: this._yOrder(d)
+				id: this._x(d),//unique id (no duplicate order allowed)
+				xo: this._x(d),
+				yo: this._y(d)
 			};
 		});
 
@@ -199,7 +244,7 @@ export default class StoryCurve {
 			.tickSizeOuter(0);
 		yaxisContainer.call(this._yaxis);
 
-		helper.axisStyleUpdate(this._container);//TODO
+		helper.axisStyleUpdate(this.container);//TODO
 
 		// draw axis labels
 		if (g.select('.bg-line').empty()) {
@@ -213,8 +258,8 @@ export default class StoryCurve {
 
 		let axisTitles = g.selectAll('.axis-legend')
 			.data([
-				[width, 0, 0, this._xtitle, 'end'],
-				[0, height - 10, -90, this._ytitle, 'start']
+				[width, 0, 0, this._xaxisTitle, 'end'],
+				[0, height - 10, -90, this._yaxisTitle, 'start']
 			]);
 		axisTitles.enter()
 			.append('text')
@@ -267,8 +312,8 @@ export default class StoryCurve {
 
 		// draw line connecting marks
 		let lineData = markData.reduce((l, d) => {
-			l.push([d.x0, d.y]);
-			l.push([d.x1, d.y]);
+			l.push([d.x0, d.y+markHeight/2]);
+			l.push([d.x1, d.y+markHeight/2]);
 			return l;
 		}, []);
 
@@ -298,20 +343,20 @@ export default class StoryCurve {
 
 		sceneEnter.append('rect')
 			.attr('class', 'overlay')
-			.on(ONMOUSEOVER, (d, i, ns) => this._onMouseOver(d, i, ns))
-			.on(ONMOUSEOUT, (d, i, ns) => this._onMouseOut(d, i, ns))
-			.on(ONMOUSECLICK, (d, i, ns) => this._onMouseClick(d, i, ns));
+			.on('mouseover', (d, i, ns) => this._onMouseOver(d, i, ns))
+			.on('mouseout', (d, i, ns) => this._onMouseOut(d, i, ns))
+			.on('click', (d, i, ns) => this._onMouseClick(d, i, ns));
 
 		sceneEnter.append('rect')
 			.attr('class', 'overlay-horz');
 
 		sceneEnter.append('rect')
 			.attr('pointer-events', 'none')
-			.attr('class', 'long-band');
+			.attr('class', 'backdrop');
 
 		sceneEnter.append('rect')
 			.attr('pointer-events', 'none')
-			.attr('class', 'short-band');
+			.attr('class', 'band');
 
 		// multiple children
 		sceneEnter.append('g')
@@ -331,15 +376,16 @@ export default class StoryCurve {
 			.attr('height', markHeight)
 			.attr('width', width);
 
-		sceneUpdate.select('.short-band')
+		sceneUpdate.select('.band')
 			.attr('x', d => d.x0)
+			.style('opacity', this._showBand? 1.0 : 0.0)
 			.style('fill-opacity',
 				d => this._isHighlighted({
-						type: 'metadata1',
-						data: this._metadata1(d.orgData)
+						type: 'band',
+						data: this._band(d.orgData)
 					},
 					d.orgData, this._highlights) ? 1.0 : 0.0)
-			.style('fill', d =>this._csm1(this._metadata1(d.orgData)))//d =>
+			.style('fill', d =>this._bandColor(this._band(d.orgData)))//d =>
 			.attr('y', d => d.y)
 			.attr('width', 0)
 			.attr('height', 0)
@@ -349,15 +395,16 @@ export default class StoryCurve {
 			.attr('width', d => d.x1 - d.x0)
 			.attr('height', markHeight * 11); //d=>markHeight*(this._children(d.orgData).length+10))
 
-		sceneUpdate.select('.long-band')
+		sceneUpdate.select('.backdrop')
 			.attr('x', d => d.x0)
 			.attr('y', ypadding)
 			.attr('width', d => d.x1 - d.x0)
-			.style('fill', d => this._csm2(this._metadata2(d.orgData)))
+			.style('opacity', this._showBackdrop? 1.0 : 0.0)
+			.style('fill', d => this._backdropColor(this._backdrop(d.orgData)))
 			.style('fill-opacity',
 				d => this._isHighlighted({
-						type: 'metadata2',
-						data: this._metadata2(d.orgData)
+						type: 'backdrop',
+						data: this._backdrop(d.orgData)
 					},
 					d.orgData, this._highlights) ? 0.25 : 0.0)
 			.attr('height', 0)
@@ -381,11 +428,11 @@ export default class StoryCurve {
 			.duration(this._duration)
 			.style('fill-opacity',
 				d => this._isHighlighted({
-						type: 'children',
+						type: 'child',
 						data: d.orgData
 					},
-					d.parentOrgDdata, this._highlights) ? 1.0 : 0.15)
-			.attr('fill', d => this._cs(this._childCategory(d.orgData, d.parentOrgDdata)))
+					d.parentOrgDdata, this._highlights) ? 1.0 : 0.05)
+			.attr('fill', d => this._childColor(this._child(d.orgData, d.parentOrgDdata)))
 			.attr('x', d => d.x0)
 			.attr('y', d => d.y)
 			.attr('width', d => d.x1 - d.x0)
@@ -408,22 +455,23 @@ export default class StoryCurve {
 		this._zoom.on('zoom', () => this._onZoom());
 
 	}
-	_children(d, i) {
-		return ['scene-' + i];
+	_children(d) {
+		return d.characters;
 	}
-	_childCategory(d) {
+	// d: an element in a list returned from _children
+	_child(d) {
 		return d;
 	}
-	_metadata1(d) {
+	_band(d) {
 		return d.scene_metadata.location;
 	}
-	_metadata2(d) {
+	_backdrop(d) {
 		return d.scene_metadata.time;
 	}
-	_xOrder(d) {
+	_x(d) {
 		return d.narrative_order;
 	}
-	_yOrder(d) {
+	_y(d) {
 		return d.story_order;
 	}
 	_size(d) {
@@ -431,28 +479,28 @@ export default class StoryCurve {
 	}
 	_onZoom() {
 		this._transformVis(event.transform);
-		if (this._listners[ONZOOM]) {
-			this._listners[ONZOOM].call(this, event.transform);
+		if (this._listners['zoom']) {
+			this._listners['zoom'].call(this, event.transform);
 		}
 	}
 
 	_transformVis(transform) {
 		this._tip.hide();
-		this._container.select('.x.axis')
+		this.container.select('.x.axis')
 			.call(this._xaxis.scale(transform.rescaleX(this._xs)));
 
-		this._container.select('.main')
+		this.container.select('.main')
 			.attr('transform',
 				'translate(' + transform.x + ',0)scale(' + transform.k + ',1)');
 
-		helper.axisStyleUpdate(this._container);
+		helper.axisStyleUpdate(this.container);
 	}
 
 	transform(op, param) { // does not call callback
 		this._zoom.on('zoom', null);
 		//update zoom state
-		let zoomContainer = this._container.select('.visarea');
-		this._container.select('.visarea')
+		let zoomContainer = this.container.select('.visarea');
+		this.container.select('.visarea')
 			.call(this._zoom[op], param);
 		// update vis
 		let transform = zoomTransform(zoomContainer.node());
@@ -461,25 +509,25 @@ export default class StoryCurve {
 		return this;
 	}
 	_onMouseClick() {
-		if (this._listners[ONMOUSECLICK]) {
-			this._listners[ONMOUSECLICK].apply(this, arguments);
+		if (this._listners['click']) {
+			this._listners['click'].apply(this, arguments);
 		}
 	}
 	_onMouseOver() {
 		this.highlightOn(arguments[0].xo);
 
-		if (this._listners[ONMOUSEOVER]) {
-			this._listners[ONMOUSEOVER].apply(this, arguments);
+		if (this._listners['mouseover']) {
+			this._listners['mouseover'].apply(this, arguments);
 		}
 	}
 	_onMouseOut() {
 		this.highlightOff(arguments[0].xo);
 
-		if (this._listners[ONMOUSEOUT]) {
-			this._listners[ONMOUSEOUT].apply(this, arguments);
+		if (this._listners['mouseout']) {
+			this._listners['mouseout'].apply(this, arguments);
 		}
 	}
-	_tipFormat(d) {
+	_tooltipFormat(d) {
 		let content = '<table>';
 		content += ('<tr><td><span style="color:#FBBD08">(X,Y)</span></td><td>&nbsp; ' + d.xo + ', ' + d.yo + '</td></tr>');
 		// content += ('<tr><td><span style="color:#767676">S.order</span></td><td>&nbsp; ' + d.so + '</td></tr>');
@@ -487,15 +535,15 @@ export default class StoryCurve {
 		return content;
 	}
 	highlightOn(xo) {
-		let g = this._container.selectAll('.scene-group')
+		let g = this.container.selectAll('.scene-group')
 			.filter((d) => d.xo == xo)
 			.raise();
 
 		g.select('.overlay')
-			.style('fill-opacity', 0.2);
+			.style('fill-opacity', 0.5);
 		g.select('.overlay-horz')
-			.style('fill-opacity', 0.2);
-		g.select('.short-band')
+			.style('fill-opacity', 0.5);
+		g.select('.band')
 			.each((d, i, ns) => this._tip.show(d, ns[i]));
 
 
@@ -506,21 +554,21 @@ export default class StoryCurve {
 		// 	return;
 		// }
 		// // retrieve all children
-		// let coappear = this._container.selectAll('.scene-group')
+		// let coappear = this.container.selectAll('.scene-group')
 		// 	.filter((d) => this._isHighlighted(d.scene, this._highlights));
 		//
 		// coappear.select('.'+css.mark)
 		// 	.classed(css.coappeared, true);
 	}
 	highlightOff(xo) {
-		let g = this._container.selectAll('.scene-group')
+		let g = this.container.selectAll('.scene-group')
 			.filter((d) => d.xo == xo)
 			.raise();
 		g.select('.overlay')
 			.style('fill-opacity', 0.0);
 		g.select('.overlay-horz')
 			.style('fill-opacity', 0.0);
-		g.select('.short-band')
+		g.select('.band')
 			.each((d, i, ns) => this._tip.hide(d, ns[i]));
 		g.selectAll('.mark')
 			.classed('highlight', false);
@@ -528,7 +576,7 @@ export default class StoryCurve {
 	_isHighlighted(target, d, highlights) {
 		return target.data==null?false:(highlights.length==0? true:
 			highlights.every(h=>
-				h.type=='children'?d[h.type].includes(h.filter):
+				h.type=='child'?d[h.type].includes(h.filter):
 					d.scene_metadata[h.type]==h.filter));
 	}
 
@@ -537,33 +585,33 @@ export default class StoryCurve {
 		this._highlights = _;
 
 		//highlight marks
-		this._container.selectAll('.scene-group')
-			.select('.short-band')
+		this.container.selectAll('.scene-group')
+			.select('.band')
 			.style('fill-opacity',
 				d => this._isHighlighted({
-						type: 'metadata1',
-						data: this._metadata1(d.orgData)
+						type: 'band',
+						data: this._band(d.orgData)
 					},
 					d.orgData, this._highlights) ? 1.0 : 0.0);
 
-		this._container.selectAll('.scene-group')
-			.select('.long-band')
+		this.container.selectAll('.scene-group')
+			.select('.backdrop')
 			.style('fill-opacity',
 				d => this._isHighlighted({
-						type: 'metadata2',
-						data: this._metadata2(d.orgData)
+						type: 'backdrop',
+						data: this._backdrop(d.orgData)
 					},
 					d.orgData, this._highlights) ? 0.25 : 0.0);
 
-		this._container.selectAll('.scene-group')
+		this.container.selectAll('.scene-group')
 			.select('.children')
 			.selectAll('.mark')
 			.style('fill-opacity',
 				d => this._isHighlighted({
-						type: 'children',
+						type: 'child',
 						data: d.orgData
 					},
-					d.parentOrgDdata, this._highlights) ? 1.0 : 0.15);
+					d.parentOrgDdata, this._highlights) ? 1.0 : 0.05);
 
 		return this;
 	}
@@ -572,19 +620,41 @@ export default class StoryCurve {
 		this._isHighlighted = _;
 		return this;
 	}
-	tipFormat(_) {
-		if (!arguments.length) return this._tipFormat;
-		this._tipFormat = _;
+	showBand(_){
+		if (!arguments.length) return this._showBand;
+		this._showBand = _;
+		this.container.selectAll('.scene-group')
+			.select('.band')
+			.style('opacity', this._showBand?1.0:0.0);
 		return this;
 	}
-	xtitle(_) {
-		if (!arguments.length) return this._xtitle;
-		this._xtitle = _;
+	showBackdrop(_){
+		if (!arguments.length) return this._showBackdrop;
+		this._showBackdrop = _;
+		this.container.selectAll('.scene-group')
+			.select('.backdrop')
+			.style('opacity', this._showBackdrop?1.0:0.0);
 		return this;
 	}
-	ytitle(_) {
-		if (!arguments.length) return this._ytitle;
-		this._ytitle = _;
+	showChildren(_){
+		if (!arguments.length) return this._showChildren;
+		this._showChildren = _;
+		return this;
+	}
+	tooltipFormat(_) {
+		if (!arguments.length) return this._tooltipFormat;
+		this._tooltipFormat = _;
+		this._tip.html(this._tooltipFormat);
+		return this;
+	}
+	xaxisTitle(_) {
+		if (!arguments.length) return this._xaxisTitle;
+		this._xaxisTitle = _;
+		return this;
+	}
+	yaxisTitle(_) {
+		if (!arguments.length) return this._yaxisTitle;
+		this._yaxisTitle = _;
 		return this;
 	}
 	children(_) {
@@ -592,44 +662,44 @@ export default class StoryCurve {
 		this._children = _;
 		return this;
 	}
-	childCategory(_) {
-		if (!arguments.length) return this._childCategory;
-		this._childCategory = _;
+	child(_) {
+		if (!arguments.length) return this._child;
+		this._child = _;
 		return this;
 	}
-	categoryScale(_) {
-		if (!arguments.length) return this._cs;
-		this._cs = _;
+	childColorScale(_) {
+		if (!arguments.length) return this._childColor;
+		this._childColor = _;
 		return this;
 	}
-	meta1ColorScale(_) {
-		if (!arguments.length) return this._csm1;
-		this._csm1 = _;
+	bandColorScale(_) {
+		if (!arguments.length) return this._bandColor;
+		this._bandColor = _;
 		return this;
 	}
-	meta2ColorScale(_) {
-		if (!arguments.length) return this._csm2;
-		this._csm2 = _;
+	backdropColorScale(_) {
+		if (!arguments.length) return this._backdropColor;
+		this._backdropColor = _;
 		return this;
 	}
-	metadata1(_) {
-		if (!arguments.length) return this._metadata1;
-		this._metadata1 = _;
+	band(_) {
+		if (!arguments.length) return this._band;
+		this._band = _;
 		return this;
 	}
-	metadata2(_) {
-		if (!arguments.length) return this._metadata2;
-		this._metadata2 = _;
+	backdrop(_) {
+		if (!arguments.length) return this._backdrop;
+		this._backdrop = _;
 		return this;
 	}
-	xOrder(_) {
-		if (!arguments.length) return this._xOrder;
-		this._xOrder = _;
+	x(_) {
+		if (!arguments.length) return this._x;
+		this._x = _;
 		return this;
 	}
-	yOrder(_) {
-		if (!arguments.length) return this._yOrder;
-		this._yOrder = _;
+	y(_) {
+		if (!arguments.length) return this._y;
+		this._y = _;
 		return this;
 	}
 	width(_) {
@@ -645,11 +715,6 @@ export default class StoryCurve {
 	size(_) {
 		if (!arguments.length) return this._size;
 		this._size = _;
-		return this;
-	}
-	container(selector) {
-		if (!arguments.length) return this._container;
-		this._container = select(selector);
 		return this;
 	}
 	on(name, callback) {
