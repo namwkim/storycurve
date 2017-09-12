@@ -37,7 +37,7 @@ export default class StoryCurve {
 		let rect = this.container.node().getBoundingClientRect();
 
 		this._width = rect.width;
-		this._height = 350;
+		this._height = rect.width/3<200?200:rect.width/3;
 		this._margin = {
 			top: 10,
 			left: 10,
@@ -73,6 +73,7 @@ export default class StoryCurve {
 
 		this._highlights = []; //columns to highlight
 
+		this._isZoomEnabled = true;
 		this._showBand = false;
 		this._showBackdrop = false;
 		this._showChildren = false;
@@ -440,19 +441,22 @@ export default class StoryCurve {
 			.attr('y', d => d.y);
 
 		// zoom setting
-		g.call(this._zoom); //attach zoom to the vis area
+		if (this._isZoomEnabled){
+			g.call(this._zoom); //attach zoom to the vis area
 
-		this._zoom.extent([
-				[xpadding, 0],
-				[width, height]
-			])
-			.translateExtent([
-				[xpadding, 0],
-				[width, height]
-			])
-			.scaleExtent([1, 15]);
+			this._zoom.extent([
+					[xpadding, 0],
+					[width, height]
+				])
+				.translateExtent([
+					[xpadding, 0],
+					[width, height]
+				])
+				.scaleExtent([1, 15]);
 
-		this._zoom.on('zoom', () => this._onZoom());
+			this._zoom.on('zoom', () => this._onZoom());
+		}
+
 
 	}
 	_children(d) {
@@ -478,6 +482,8 @@ export default class StoryCurve {
 		return d.scene_metadata.size;
 	}
 	_onZoom() {
+		if (!this._isZoomEnabled) return;
+
 		this._transformVis(event.transform);
 		if (this._listners['zoom']) {
 			this._listners['zoom'].call(this, event.transform);
@@ -620,6 +626,14 @@ export default class StoryCurve {
 		this._isHighlighted = _;
 		return this;
 	}
+	zoomEnabled(_){
+		if (!arguments.length) return this._showBand;
+		this._isZoomEnabled = _;
+		if (this._isZoomEnabled==false && !this.container.select('.visarea').empty()){
+			this.transform('transform', d3.zoomIdentity);
+		}
+		return this;
+	}
 	showBand(_){
 		if (!arguments.length) return this._showBand;
 		this._showBand = _;
@@ -680,6 +694,16 @@ export default class StoryCurve {
 	backdropColorScale(_) {
 		if (!arguments.length) return this._backdropColor;
 		this._backdropColor = _;
+		return this;
+	}
+	xs(_) {
+		if (!arguments.length) return this._xs;
+		this._xs = _;
+		return this;
+	}
+	ys(_) {
+		if (!arguments.length) return this._ys;
+		this._ys = _;
 		return this;
 	}
 	band(_) {
