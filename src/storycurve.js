@@ -37,7 +37,7 @@ export default class StoryCurve {
 		let rect = this.container.node().getBoundingClientRect();
 
 		this._width = rect.width;
-		this._height = rect.width/3<200?200:rect.width/3;
+		this._height = rect.width/3<220?220:rect.width/3;
 		this._margin = {
 			top: 10,
 			left: 10,
