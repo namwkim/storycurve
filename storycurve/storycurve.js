@@ -194,12 +194,6 @@ var createClass = function () {
 
 babelHelpers;
 
-// mouse events
-var ONZOOM = 'zoom';
-var ONMOUSECLICK = 'click';
-var ONMOUSEOVER = 'mouseover';
-var ONMOUSEOUT = 'mouseout';
-
 // private functions
 var helper = {
 	axisStyleUpdate: function axisStyleUpdate(selection) {
@@ -219,13 +213,15 @@ var StoryCurve = function () {
 	function StoryCurve(selector) {
 		classCallCheck(this, StoryCurve);
 
-		this._container = selector ? d3Selection.select(selector) : null;
-		this._width = 800;
-		this._height = 300;
+		this.container = selector ? d3Selection.select(selector) : null;
+		var rect = this.container.node().getBoundingClientRect();
+
+		this._width = rect.width;
+		this._height = rect.width / 3 < 220 ? 220 : rect.width / 3;
 		this._margin = {
-			top: 0,
-			left: 0,
-			right: 0,
+			top: 10,
+			left: 10,
+			right: 10,
 			bottom: 10
 		};
 		this._duration = 400; // animation duration
@@ -234,27 +230,32 @@ var StoryCurve = function () {
 		this._xs = d3Scale.scaleLinear(); //x-scale
 		this._ys = d3Scale.scaleLinear(); //y-scale
 
-		this._cs = d3Scale.scaleOrdinal() //color scale for children
-		.range(['#00B5AD']);
+		this._childColor = d3Scale.scaleOrdinal() //color scale for children
+		.range(['#db2828', '#f2711c', '#fbbd08', '#b5cc18', '#21ba45', '#00b5ad', '#2185d0', '#6435c9']).unknown('#9E9E9E');
 
-		this._csm1 = d3Scale.scaleOrdinal() //color scale for metadata1
-		.range(['#f2711c']);
-		this._csm2 = d3Scale.scaleOrdinal() //color scale for metadata2
-		.range(['#a333c8']);
+		this._bandColor = d3Scale.scaleOrdinal() //color scale for band
+		.range(['#eedaf1', '#fad1df', '#cfe8fc', '#daddf1']).unknown('rgba(0,0,0, 0.0)');
+		this._backdropColor = d3Scale.scaleOrdinal() //color scale for backdrop
+		.range(['#CFD8DC', '#90A4AE', '#607D8B']).unknown('rgba(0,0,0, 0.0)');
 
 		this._xaxis = d3Axis.axisTop();
 		this._yaxis = d3Axis.axisLeft();
-		this._xtitle = 'Narrative order →';
-		this._ytitle = '← Story order';
+		this._xaxisTitle = 'Narrative order →';
+		this._yaxisTitle = '← Story order';
 
-		this._palette = ['#00B5AD'];
+		// this._palette = ['#00B5AD'];
 
 		this._listners = new Map(); //event listeners
 
 		this._highlights = []; //columns to highlight
 
+		this._isZoomEnabled = true;
+		this._showBand = false;
+		this._showBackdrop = false;
+		this._showChildren = false;
+
 		//TODO: remove dependency on d3.tip
-		this._tip = d3.tip().attr('class', 'd3-tip').offset([0, 10]).direction('e').html(this._tipFormat);
+		this._tip = d3.tip().attr('class', 'd3-tip').offset([0, 10]).direction('e').html(this._tooltipFormat);
 	}
 
 	createClass(StoryCurve, [{
@@ -262,11 +263,10 @@ var StoryCurve = function () {
 		value: function draw(data) {
 			var _this = this;
 
-			if (this._container.empty()) {
+			if (this.container.empty()) {
 				return;
 			}
-
-			this._container.datum(data);
+			this.container.datum(data);
 
 			// console.log('---------- StoryCurve ----------');
 			var width = this._width - this._margin.left - this._margin.right;
@@ -276,10 +276,10 @@ var StoryCurve = function () {
 			var markHeight = 8; // variable width, fixed height
 
 			// create root container
-			var svg = this._container.select('svg');
+			var svg = this.container.select('svg');
 			if (svg.empty()) {
 				// init
-				svg = this._container.append('svg');
+				svg = this.container.append('svg');
 				svg.append('g').attr('class', 'visarea').append('defs').append('clipPath').attr('id', 'clipID' + Date.now()) //unique clippath
 				.append('rect').attr('x', xpadding).attr('y', ypadding);
 
@@ -301,25 +301,71 @@ var StoryCurve = function () {
 			// define scales
 			this._xs.domain([0, d3Array.sum(data, this._size)]).range([xpadding, width]);
 
-			this._ys.domain([0, d3Array.max(data, this._yOrder)]).range([ypadding, height - markHeight]);
+			this._ys.domain([0, d3Array.max(data, this._y)]).range([ypadding, height - markHeight]);
 
-			// let categories = set(data.reduce((acc, d)=>
-			// 	acc.concat(this._children(d).map(
-			// 		c=>this._childCategory(c))),[])).values();
-			// // console.log(categories);
-			// this._cs.domain(categories.sort())
-			// 	.range(this._palette);
-
+			// set default domains for color scale
+			if (this._showChildren == false) {
+				this.___children = this._children; //backup
+				this._children = function () {
+					return ['Scene'];
+				};
+				this._childColor.range(['#00BCD4']);
+			} else {
+				if (this.___children) {
+					this._children = this.___children;
+				}
+			}
+			//children
+			if (this._childColor.domain().length == 0) {
+				var categories = {};
+				data.map(function (d) {
+					return _this._children(d).map(function (c) {
+						return _this._child(c) in categories ? categories[_this._child(c)]++ : categories[_this._child(c)] = 1;
+					});
+				});
+				categories = Object.entries(categories).sort(function (a, b) {
+					return b[1] - a[1];
+				}).map(function (d) {
+					return d[0];
+				}).slice(0, this._childColor.range().length);
+				this._childColor.domain(categories);
+			}
+			// band
+			if (this._bandColor.domain().length == 0) {
+				var _categories = {};
+				data.map(function (d) {
+					return _this._band(d) in _categories ? _categories[_this._band(d)]++ : _categories[_this._band(d)] = 1;
+				});
+				_categories = Object.entries(_categories).sort(function (a, b) {
+					return b[1] - a[1];
+				}).map(function (d) {
+					return d[0];
+				}).slice(0, this._bandColor.range().length);
+				this._bandColor.domain(_categories);
+			}
+			// backdrop
+			if (this._backdropColor.domain().length == 0) {
+				var _categories2 = {};
+				data.map(function (d) {
+					return _this._backdrop(d) in _categories2 ? _categories2[_this._backdrop(d)]++ : _categories2[_this._backdrop(d)] = 1;
+				});
+				_categories2 = Object.entries(_categories2).sort(function (a, b) {
+					return b[1] - a[1];
+				}).map(function (d) {
+					return d[0];
+				}).slice(0, this._backdropColor.range().length);
+				this._backdropColor.domain(_categories2);
+			}
 			// compute story curve layout
 			var cursor = 0;
 			var markData = data.sort(function (d1, d2) {
 				// sort by x-order
-				return _this._xOrder(d1) - _this._xOrder(d2);
+				return _this._x(d1) - _this._x(d2);
 			}).map(function (d) {
 				var x0 = _this._xs(cursor);
 				cursor += _this._size(d); //move cursor by width (e.g., scene length)
 				var x1 = _this._xs(cursor); //width = x1 - x0
-				var y = _this._ys(_this._yOrder(d));
+				var y = _this._ys(_this._y(d));
 
 				// children layout in each scene
 				var children = _this._children(d).map(function (c, i) {
@@ -337,9 +383,9 @@ var StoryCurve = function () {
 					x0: x0,
 					x1: x1,
 					y: y,
-					id: _this._xOrder(d), //unique id (no duplicate order allowed)
-					xo: _this._xOrder(d),
-					yo: _this._yOrder(d)
+					id: _this._x(d), //unique id (no duplicate order allowed)
+					xo: _this._x(d),
+					yo: _this._y(d)
 				};
 			});
 
@@ -364,14 +410,14 @@ var StoryCurve = function () {
 			this._yaxis.scale(this._ys).tickValues([ydivide, 2 * ydivide, 3 * ydivide]).tickSizeInner(-(width - xpadding)).tickSizeOuter(0);
 			yaxisContainer.call(this._yaxis);
 
-			helper.axisStyleUpdate(this._container); //TODO
+			helper.axisStyleUpdate(this.container); //TODO
 
 			// draw axis labels
 			if (g.select('.bg-line').empty()) {
 				g.append('line').attr('class', 'bg-line').attr('x1', 0).attr('x2', xpadding).attr('y1', ypadding).attr('y2', ypadding);
 			}
 
-			var axisTitles = g.selectAll('.axis-legend').data([[width, 0, 0, this._xtitle, 'end'], [0, height - 10, -90, this._ytitle, 'start']]);
+			var axisTitles = g.selectAll('.axis-legend').data([[width, 0, 0, this._xaxisTitle, 'end'], [0, height - 10, -90, this._yaxisTitle, 'start']]);
 			axisTitles.enter().append('text').attr('class', 'axis-legend').merge(axisTitles).text(function (d) {
 				return d[3];
 			}).attr('text-anchor', function (d) {
@@ -408,8 +454,8 @@ var StoryCurve = function () {
 
 			// draw line connecting marks
 			var lineData = markData.reduce(function (l, d) {
-				l.push([d.x0, d.y]);
-				l.push([d.x1, d.y]);
+				l.push([d.x0, d.y + markHeight / 2]);
+				l.push([d.x1, d.y + markHeight / 2]);
 				return l;
 			}, []);
 
@@ -435,19 +481,19 @@ var StoryCurve = function () {
 
 			var sceneEnter = sceneUpdate.enter().append('g').attr('class', 'scene-group');
 
-			sceneEnter.append('rect').attr('class', 'overlay').on(ONMOUSEOVER, function (d, i, ns) {
+			sceneEnter.append('rect').attr('class', 'overlay').on('mouseover', function (d, i, ns) {
 				return _this._onMouseOver(d, i, ns);
-			}).on(ONMOUSEOUT, function (d, i, ns) {
+			}).on('mouseout', function (d, i, ns) {
 				return _this._onMouseOut(d, i, ns);
-			}).on(ONMOUSECLICK, function (d, i, ns) {
+			}).on('click', function (d, i, ns) {
 				return _this._onMouseClick(d, i, ns);
 			});
 
 			sceneEnter.append('rect').attr('class', 'overlay-horz');
 
-			sceneEnter.append('rect').attr('pointer-events', 'none').attr('class', 'long-band');
+			sceneEnter.append('rect').attr('pointer-events', 'none').attr('class', 'backdrop');
 
-			sceneEnter.append('rect').attr('pointer-events', 'none').attr('class', 'short-band');
+			sceneEnter.append('rect').attr('pointer-events', 'none').attr('class', 'band');
 
 			// multiple children
 			sceneEnter.append('g').attr('class', 'children');
@@ -464,15 +510,15 @@ var StoryCurve = function () {
 				return d.y;
 			}).attr('height', markHeight).attr('width', width);
 
-			sceneUpdate.select('.short-band').attr('x', function (d) {
+			sceneUpdate.select('.band').attr('x', function (d) {
 				return d.x0;
-			}).style('fill-opacity', function (d) {
+			}).style('opacity', this._showBand ? 1.0 : 0.0).style('fill-opacity', function (d) {
 				return _this._isHighlighted({
-					type: 'metadata1',
-					data: _this._metadata1(d.orgData)
+					type: 'band',
+					data: _this._band(d.orgData)
 				}, d.orgData, _this._highlights) ? 1.0 : 0.0;
 			}).style('fill', function (d) {
-				return _this._csm1(_this._metadata1(d.orgData));
+				return _this._bandColor(_this._band(d.orgData));
 			}) //d =>
 			.attr('y', function (d) {
 				return d.y;
@@ -482,16 +528,16 @@ var StoryCurve = function () {
 				return d.x1 - d.x0;
 			}).attr('height', markHeight * 11); //d=>markHeight*(this._children(d.orgData).length+10))
 
-			sceneUpdate.select('.long-band').attr('x', function (d) {
+			sceneUpdate.select('.backdrop').attr('x', function (d) {
 				return d.x0;
 			}).attr('y', ypadding).attr('width', function (d) {
 				return d.x1 - d.x0;
-			}).style('fill', function (d) {
-				return _this._csm2(_this._metadata2(d.orgData));
+			}).style('opacity', this._showBackdrop ? 1.0 : 0.0).style('fill', function (d) {
+				return _this._backdropColor(_this._backdrop(d.orgData));
 			}).style('fill-opacity', function (d) {
 				return _this._isHighlighted({
-					type: 'metadata2',
-					data: _this._metadata2(d.orgData)
+					type: 'backdrop',
+					data: _this._backdrop(d.orgData)
 				}, d.orgData, _this._highlights) ? 0.25 : 0.0;
 			}).attr('height', 0).transition().duration(this._duration).attr('height', height - ypadding - markHeight);
 
@@ -507,11 +553,11 @@ var StoryCurve = function () {
 				return d.y;
 			}).merge(children).transition().duration(this._duration).style('fill-opacity', function (d) {
 				return _this._isHighlighted({
-					type: 'children',
+					type: 'child',
 					data: d.orgData
-				}, d.parentOrgDdata, _this._highlights) ? 1.0 : 0.15;
+				}, d.parentOrgDdata, _this._highlights) ? 1.0 : 0.05;
 			}).attr('fill', function (d) {
-				return _this._cs(_this._childCategory(d.orgData, d.parentOrgDdata));
+				return _this._childColor(_this._child(d.orgData, d.parentOrgDdata));
 			}).attr('x', function (d) {
 				return d.x0;
 			}).attr('y', function (d) {
@@ -523,42 +569,46 @@ var StoryCurve = function () {
 			});
 
 			// zoom setting
-			g.call(this._zoom); //attach zoom to the vis area
+			if (this._isZoomEnabled) {
+				g.call(this._zoom); //attach zoom to the vis area
 
-			this._zoom.extent([[xpadding, 0], [width, height]]).translateExtent([[xpadding, 0], [width, height]]).scaleExtent([1, 15]);
+				this._zoom.extent([[xpadding, 0], [width, height]]).translateExtent([[xpadding, 0], [width, height]]).scaleExtent([1, 15]);
 
-			this._zoom.on('zoom', function () {
-				return _this._onZoom();
-			});
+				this._zoom.on('zoom', function () {
+					return _this._onZoom();
+				});
+			}
 		}
 	}, {
 		key: '_children',
-		value: function _children(d, i) {
-			return ['scene-' + i];
+		value: function _children(d) {
+			return d.characters;
 		}
+		// d: an element in a list returned from _children
+
 	}, {
-		key: '_childCategory',
-		value: function _childCategory(d) {
+		key: '_child',
+		value: function _child(d) {
 			return d;
 		}
 	}, {
-		key: '_metadata1',
-		value: function _metadata1(d) {
+		key: '_band',
+		value: function _band(d) {
 			return d.scene_metadata.location;
 		}
 	}, {
-		key: '_metadata2',
-		value: function _metadata2(d) {
+		key: '_backdrop',
+		value: function _backdrop(d) {
 			return d.scene_metadata.time;
 		}
 	}, {
-		key: '_xOrder',
-		value: function _xOrder(d) {
+		key: '_x',
+		value: function _x(d) {
 			return d.narrative_order;
 		}
 	}, {
-		key: '_yOrder',
-		value: function _yOrder(d) {
+		key: '_y',
+		value: function _y(d) {
 			return d.story_order;
 		}
 	}, {
@@ -569,20 +619,22 @@ var StoryCurve = function () {
 	}, {
 		key: '_onZoom',
 		value: function _onZoom() {
+			if (!this._isZoomEnabled) return;
+
 			this._transformVis(d3Selection.event.transform);
-			if (this._listners[ONZOOM]) {
-				this._listners[ONZOOM].call(this, d3Selection.event.transform);
+			if (this._listners['zoom']) {
+				this._listners['zoom'].call(this, d3Selection.event.transform);
 			}
 		}
 	}, {
 		key: '_transformVis',
 		value: function _transformVis(transform) {
 			this._tip.hide();
-			this._container.select('.x.axis').call(this._xaxis.scale(transform.rescaleX(this._xs)));
+			this.container.select('.x.axis').call(this._xaxis.scale(transform.rescaleX(this._xs)));
 
-			this._container.select('.main').attr('transform', 'translate(' + transform.x + ',0)scale(' + transform.k + ',1)');
+			this.container.select('.main').attr('transform', 'translate(' + transform.x + ',0)scale(' + transform.k + ',1)');
 
-			helper.axisStyleUpdate(this._container);
+			helper.axisStyleUpdate(this.container);
 		}
 	}, {
 		key: 'transform',
@@ -592,8 +644,8 @@ var StoryCurve = function () {
 			// does not call callback
 			this._zoom.on('zoom', null);
 			//update zoom state
-			var zoomContainer = this._container.select('.visarea');
-			this._container.select('.visarea').call(this._zoom[op], param);
+			var zoomContainer = this.container.select('.visarea');
+			this.container.select('.visarea').call(this._zoom[op], param);
 			// update vis
 			var transform = d3Zoom.zoomTransform(zoomContainer.node());
 			this._transformVis(transform);
@@ -605,8 +657,8 @@ var StoryCurve = function () {
 	}, {
 		key: '_onMouseClick',
 		value: function _onMouseClick() {
-			if (this._listners[ONMOUSECLICK]) {
-				this._listners[ONMOUSECLICK].apply(this, arguments);
+			if (this._listners['click']) {
+				this._listners['click'].apply(this, arguments);
 			}
 		}
 	}, {
@@ -614,8 +666,8 @@ var StoryCurve = function () {
 		value: function _onMouseOver() {
 			this.highlightOn(arguments[0].xo);
 
-			if (this._listners[ONMOUSEOVER]) {
-				this._listners[ONMOUSEOVER].apply(this, arguments);
+			if (this._listners['mouseover']) {
+				this._listners['mouseover'].apply(this, arguments);
 			}
 		}
 	}, {
@@ -623,13 +675,13 @@ var StoryCurve = function () {
 		value: function _onMouseOut() {
 			this.highlightOff(arguments[0].xo);
 
-			if (this._listners[ONMOUSEOUT]) {
-				this._listners[ONMOUSEOUT].apply(this, arguments);
+			if (this._listners['mouseout']) {
+				this._listners['mouseout'].apply(this, arguments);
 			}
 		}
 	}, {
-		key: '_tipFormat',
-		value: function _tipFormat(d) {
+		key: '_tooltipFormat',
+		value: function _tooltipFormat(d) {
 			var content = '<table>';
 			content += '<tr><td><span style="color:#FBBD08">(X,Y)</span></td><td>&nbsp; ' + d.xo + ', ' + d.yo + '</td></tr>';
 			// content += ('<tr><td><span style="color:#767676">S.order</span></td><td>&nbsp; ' + d.so + '</td></tr>');
@@ -641,13 +693,13 @@ var StoryCurve = function () {
 		value: function highlightOn(xo) {
 			var _this3 = this;
 
-			var g = this._container.selectAll('.scene-group').filter(function (d) {
+			var g = this.container.selectAll('.scene-group').filter(function (d) {
 				return d.xo == xo;
 			}).raise();
 
-			g.select('.overlay').style('fill-opacity', 0.2);
-			g.select('.overlay-horz').style('fill-opacity', 0.2);
-			g.select('.short-band').each(function (d, i, ns) {
+			g.select('.overlay').style('fill-opacity', 0.5);
+			g.select('.overlay-horz').style('fill-opacity', 0.5);
+			g.select('.band').each(function (d, i, ns) {
 				return _this3._tip.show(d, ns[i]);
 			});
 
@@ -657,7 +709,7 @@ var StoryCurve = function () {
 			// 	return;
 			// }
 			// // retrieve all children
-			// let coappear = this._container.selectAll('.scene-group')
+			// let coappear = this.container.selectAll('.scene-group')
 			// 	.filter((d) => this._isHighlighted(d.scene, this._highlights));
 			//
 			// coappear.select('.'+css.mark)
@@ -668,12 +720,12 @@ var StoryCurve = function () {
 		value: function highlightOff(xo) {
 			var _this4 = this;
 
-			var g = this._container.selectAll('.scene-group').filter(function (d) {
+			var g = this.container.selectAll('.scene-group').filter(function (d) {
 				return d.xo == xo;
 			}).raise();
 			g.select('.overlay').style('fill-opacity', 0.0);
 			g.select('.overlay-horz').style('fill-opacity', 0.0);
-			g.select('.short-band').each(function (d, i, ns) {
+			g.select('.band').each(function (d, i, ns) {
 				return _this4._tip.hide(d, ns[i]);
 			});
 			g.selectAll('.mark').classed('highlight', false);
@@ -682,7 +734,7 @@ var StoryCurve = function () {
 		key: '_isHighlighted',
 		value: function _isHighlighted(target, d, highlights) {
 			return target.data == null ? false : highlights.length == 0 ? true : highlights.every(function (h) {
-				return h.type == 'children' ? d[h.type].includes(h.filter) : d.scene_metadata[h.type] == h.filter;
+				return h.type == 'child' ? d[h.type].includes(h.filter) : d.scene_metadata[h.type] == h.filter;
 			});
 		}
 	}, {
@@ -694,25 +746,25 @@ var StoryCurve = function () {
 			this._highlights = _;
 
 			//highlight marks
-			this._container.selectAll('.scene-group').select('.short-band').style('fill-opacity', function (d) {
+			this.container.selectAll('.scene-group').select('.band').style('fill-opacity', function (d) {
 				return _this5._isHighlighted({
-					type: 'metadata1',
-					data: _this5._metadata1(d.orgData)
+					type: 'band',
+					data: _this5._band(d.orgData)
 				}, d.orgData, _this5._highlights) ? 1.0 : 0.0;
 			});
 
-			this._container.selectAll('.scene-group').select('.long-band').style('fill-opacity', function (d) {
+			this.container.selectAll('.scene-group').select('.backdrop').style('fill-opacity', function (d) {
 				return _this5._isHighlighted({
-					type: 'metadata2',
-					data: _this5._metadata2(d.orgData)
+					type: 'backdrop',
+					data: _this5._backdrop(d.orgData)
 				}, d.orgData, _this5._highlights) ? 0.25 : 0.0;
 			});
 
-			this._container.selectAll('.scene-group').select('.children').selectAll('.mark').style('fill-opacity', function (d) {
+			this.container.selectAll('.scene-group').select('.children').selectAll('.mark').style('fill-opacity', function (d) {
 				return _this5._isHighlighted({
-					type: 'children',
+					type: 'child',
 					data: d.orgData
-				}, d.parentOrgDdata, _this5._highlights) ? 1.0 : 0.15;
+				}, d.parentOrgDdata, _this5._highlights) ? 1.0 : 0.05;
 			});
 
 			return this;
@@ -725,24 +777,58 @@ var StoryCurve = function () {
 			return this;
 		}
 	}, {
-		key: 'tipFormat',
-		value: function tipFormat(_) {
-			if (!arguments.length) return this._tipFormat;
-			this._tipFormat = _;
+		key: 'zoomEnabled',
+		value: function zoomEnabled(_) {
+			if (!arguments.length) return this._showBand;
+			this._isZoomEnabled = _;
+			if (this._isZoomEnabled == false && !this.container.select('.visarea').empty()) {
+				this.transform('transform', d3.zoomIdentity);
+			}
 			return this;
 		}
 	}, {
-		key: 'xtitle',
-		value: function xtitle(_) {
-			if (!arguments.length) return this._xtitle;
-			this._xtitle = _;
+		key: 'showBand',
+		value: function showBand(_) {
+			if (!arguments.length) return this._showBand;
+			this._showBand = _;
+			this.container.selectAll('.scene-group').select('.band').style('opacity', this._showBand ? 1.0 : 0.0);
 			return this;
 		}
 	}, {
-		key: 'ytitle',
-		value: function ytitle(_) {
-			if (!arguments.length) return this._ytitle;
-			this._ytitle = _;
+		key: 'showBackdrop',
+		value: function showBackdrop(_) {
+			if (!arguments.length) return this._showBackdrop;
+			this._showBackdrop = _;
+			this.container.selectAll('.scene-group').select('.backdrop').style('opacity', this._showBackdrop ? 1.0 : 0.0);
+			return this;
+		}
+	}, {
+		key: 'showChildren',
+		value: function showChildren(_) {
+			if (!arguments.length) return this._showChildren;
+			this._showChildren = _;
+			return this;
+		}
+	}, {
+		key: 'tooltipFormat',
+		value: function tooltipFormat(_) {
+			if (!arguments.length) return this._tooltipFormat;
+			this._tooltipFormat = _;
+			this._tip.html(this._tooltipFormat);
+			return this;
+		}
+	}, {
+		key: 'xaxisTitle',
+		value: function xaxisTitle(_) {
+			if (!arguments.length) return this._xaxisTitle;
+			this._xaxisTitle = _;
+			return this;
+		}
+	}, {
+		key: 'yaxisTitle',
+		value: function yaxisTitle(_) {
+			if (!arguments.length) return this._yaxisTitle;
+			this._yaxisTitle = _;
 			return this;
 		}
 	}, {
@@ -753,59 +839,73 @@ var StoryCurve = function () {
 			return this;
 		}
 	}, {
-		key: 'childCategory',
-		value: function childCategory(_) {
-			if (!arguments.length) return this._childCategory;
-			this._childCategory = _;
+		key: 'child',
+		value: function child(_) {
+			if (!arguments.length) return this._child;
+			this._child = _;
 			return this;
 		}
 	}, {
-		key: 'categoryScale',
-		value: function categoryScale(_) {
-			if (!arguments.length) return this._cs;
-			this._cs = _;
+		key: 'childColorScale',
+		value: function childColorScale(_) {
+			if (!arguments.length) return this._childColor;
+			this._childColor = _;
 			return this;
 		}
 	}, {
-		key: 'meta1ColorScale',
-		value: function meta1ColorScale(_) {
-			if (!arguments.length) return this._csm1;
-			this._csm1 = _;
+		key: 'bandColorScale',
+		value: function bandColorScale(_) {
+			if (!arguments.length) return this._bandColor;
+			this._bandColor = _;
 			return this;
 		}
 	}, {
-		key: 'meta2ColorScale',
-		value: function meta2ColorScale(_) {
-			if (!arguments.length) return this._csm2;
-			this._csm2 = _;
+		key: 'backdropColorScale',
+		value: function backdropColorScale(_) {
+			if (!arguments.length) return this._backdropColor;
+			this._backdropColor = _;
 			return this;
 		}
 	}, {
-		key: 'metadata1',
-		value: function metadata1(_) {
-			if (!arguments.length) return this._metadata1;
-			this._metadata1 = _;
+		key: 'xs',
+		value: function xs(_) {
+			if (!arguments.length) return this._xs;
+			this._xs = _;
 			return this;
 		}
 	}, {
-		key: 'metadata2',
-		value: function metadata2(_) {
-			if (!arguments.length) return this._metadata2;
-			this._metadata2 = _;
+		key: 'ys',
+		value: function ys(_) {
+			if (!arguments.length) return this._ys;
+			this._ys = _;
 			return this;
 		}
 	}, {
-		key: 'xOrder',
-		value: function xOrder(_) {
-			if (!arguments.length) return this._xOrder;
-			this._xOrder = _;
+		key: 'band',
+		value: function band(_) {
+			if (!arguments.length) return this._band;
+			this._band = _;
 			return this;
 		}
 	}, {
-		key: 'yOrder',
-		value: function yOrder(_) {
-			if (!arguments.length) return this._yOrder;
-			this._yOrder = _;
+		key: 'backdrop',
+		value: function backdrop(_) {
+			if (!arguments.length) return this._backdrop;
+			this._backdrop = _;
+			return this;
+		}
+	}, {
+		key: 'x',
+		value: function x(_) {
+			if (!arguments.length) return this._x;
+			this._x = _;
+			return this;
+		}
+	}, {
+		key: 'y',
+		value: function y(_) {
+			if (!arguments.length) return this._y;
+			this._y = _;
 			return this;
 		}
 	}, {
@@ -827,13 +927,6 @@ var StoryCurve = function () {
 		value: function size(_) {
 			if (!arguments.length) return this._size;
 			this._size = _;
-			return this;
-		}
-	}, {
-		key: 'container',
-		value: function container(selector) {
-			if (!arguments.length) return this._container;
-			this._container = d3Selection.select(selector);
 			return this;
 		}
 	}, {

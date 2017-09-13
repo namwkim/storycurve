@@ -1,23 +1,870 @@
 <!DOCTYPE html>
 <html>
+
 <head>
-<meta charset="UTF-8">
-<title>Examples</title>
-<link rel="stylesheet" type="text/css" href="storycurve/storycurve.css">
-<link rel="stylesheet" type="text/css" href="index.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Story Curves</title>
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
+  <link rel="stylesheet" href="css/bulma.css">
+  <!-- <link rel="stylesheet" type="text/css" href="css/d3-annotation.css"> -->
+  <link rel="stylesheet" type="text/css" href="../dist/storycurve.css">
+  <link rel="stylesheet" type="text/css" href="css/index.css">
 </head>
+
 <body>
 
-<div class="container">
-  <h1> Examples </h1>
-  <div id="memento" class="storycurve">
-  </div>
-</div>
-<!-- <script src="https://unpkg.com/vue"></script> -->
-<script type="text/javascript" src="https://d3js.org/d3.v4.min.js"></script>
-<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/d3-tip/0.7.1/d3-tip.min.js"></script>
-<script src="storycurve/storycurve.js"></script>
-<script src="index.js"></script>
+  <div style="padding-top:15px;padding-bottom:15px">
+  <nav class="level">
+  <p class="level-item has-text-centered">
+    <a class="link is-info" href="#intro">Introduction</a>
+  </p>
+  <p class="level-item has-text-centered">
+    <a class="link is-info" href="#nonlinear_narrative">Narrative Theory</a>
+  </p>
+  <p class="level-item has-text-centered">
+    <a class="link is-info" href="#story_curves">Story Curves</a>
+  </p>
+  <p class="level-item has-text-centered">
+    <img src="img/logo.png" alt="" style="height: 40px;">
+  </p>
+  <p class="level-item has-text-centered" >
+    <a class="link is-info" href="#story_explorer">Story Explorer</a>
+  </p>
+
+  <p class="level-item has-text-centered">
+    <a class="link is-info" href="#data_code">Data & Code</a>
+  </p>
+  <p class="level-item has-text-centered">
+    <a class="link is-info">Contact</a>
+  </p>
+</nav>
+</section>
+  <section id="intro" class="hero is-primary">
+    <div class="hero-body">
+      <div class="container">
+        <div class="container">
+          <h1 class="title">
+            Visualizing Nonlinear Narratives with Story Curves
+          </h1>
+          <h2 class="subtitle">
+            Published in IEEE transactions on visualization and computer graphics (InfoVis'17)
+          </h2>
+        </div>
+      </div>
+    </div>
+  </section>
+  <section class="section">
+    <div class="container">
+      <div class="columns">
+        <div class="column">
+          <div class="content">
+            <p style="text-align: justify;">A nonlinear narrative is a storytelling device that portrays events of a story out of chronological order, e.g., in reverse order or going back and forth between past and future events. <strong>Story curves</strong> visualize the nonlinear
+              narrative of a movie by showing the order in which events are told in the movie and comparing them to their actual chronological order, resulting in possibly meandering visual patterns in the curve. We also developed <strong>Story Explorer</strong>,
+              an interactive tool that visualizes a story curve together with complementary information such as characters and settings. Story Explorer further provides a script curation interface that allows users to specify the chronological order of
+              events in movies. We used Story Explorer to analyze 10 popular nonlinear movies and describe the spectrum of narrative patterns that we discovered, including some novel patterns not previously described in the literature.
+            </p>
+          </div>
+          <a class="button is-primary" href="file/paper.pdf" target="_blank">
+            <span class="icon is-small">
+      <i class="fa fa-file-pdf-o" aria-hidden="true"></i>
+    </span>
+            <span>PDF</span></a>
+          <a class="button is-primary" href="file/supplement.pdf" target="_blank">
+            <span class="icon is-small">
+          <i class="fa fa-file-pdf-o" aria-hidden="true"></i>
+        </span>
+            <span>Supplement</span>
+          </a>
+          <a id="bibtex-btn" class="button is-primary">
+            <span class="icon is-small">
+          <i class="fa fa-file-code-o" aria-hidden="true"></i>
+        </span>
+            <span>Bibtex</span>
+          </a>
+          <div id="bibtex-text" class="content" style="display:none">
+            <p>
+              <small><blockquote>
+                @article {kim2018story,<br>
+                &nbsp;&nbsp;&nbsp;&nbsp;title={Visualizing Nonlinear Narratives with Story Curves},<br>
+                &nbsp;&nbsp;&nbsp;&nbsp;author={Kim, Nam Wook and Bach, Benjamin and Im, Hyejin and Schriber, Sasha and Gross, Markus and and Pfister, Hanspeter},<br>
+                &nbsp;&nbsp;&nbsp;&nbsp;volume={24},<br>
+                &nbsp;&nbsp;&nbsp;&nbsp;number={1},<br>
+                &nbsp;&nbsp;&nbsp;&nbsp;journal={IEEE transactions on visualization and computer graphics},<br>
+                &nbsp;&nbsp;&nbsp;&nbsp;year={2018},<br>
+                &nbsp;&nbsp;&nbsp;&nbsp;month={Jan},<br>
+                &nbsp;&nbsp;&nbsp;&nbsp;doi={10.1109/TVCG.2017.2744118}<br>
+                }
+                <a class="button is-pulled-right is-primary is-inverted"
+                  href="file/bibtex.tex" target="_blank">
+                  <span class="icon is-small">
+                    <i class="fa fa-download"></i>
+                  </span>
+                </a>
+              </blockquote></small>
+            </p>
+
+          </div>
+        </div>
+        <div class="column">
+          <div class="box">
+            <video width="100%" poster="img/preview.jpeg" controls>
+              <source src="video/long.mp4" type="video/mp4"> Your browser does not support the video tag.
+            </video>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+  <section class="section">
+    <div class="container">
+      <div class="columns is-multiline">
+        <div class="column is-one-third-tablet">
+          <div class="columns is-mobile">
+            <div class="column">
+              <img src="img/nw.png" width="100%">
+            </div>
+            <div class="column is-two-thirds">
+              <div class="content">
+                <p>
+                  <small><strong>Nam Wook Kim</strong><br>
+                Ph.D. student<br>
+                @ Harvard University</small>
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="column is-one-third-tablet">
+          <div class="columns is-mobile">
+            <div class="column">
+              <img src="img/bj.png" width="100%">
+            </div>
+            <div class="column is-two-thirds">
+              <div class="content">
+                <p>
+                  <small><strong>Benjamin Bach</strong><br>
+                Assistant Professor<br>
+                @ University of Edinburgh</small>
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="column is-one-third-tablet">
+          <div class="columns is-mobile">
+            <div class="column">
+              <img src="img/hj.png" width="100%">
+            </div>
+            <div class="column is-two-thirds">
+              <div class="content">
+                <p>
+                  <small><strong>Hyejin Im</strong><br>
+                Student<br>
+                @ Tufts University</small>
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="column is-one-third-tablet">
+          <div class="columns is-mobile">
+            <div class="column">
+              <img src="img/sasha.png" width="100%">
+            </div>
+            <div class="column is-two-thirds">
+              <div class="content">
+                <p>
+                  <small><strong>Sasha Schriber</strong><br>
+                Principal Digital Artist<br>
+                @ Disney Research Zürich</small>
+                </p>
+              </div>
+            </div>
+          </div>
+
+        </div>
+        <div class="column is-one-third-tablet">
+          <div class="columns is-mobile">
+            <div class="column">
+              <img src="img/markus.png" width="100%">
+            </div>
+            <div class="column is-two-thirds">
+              <div class="content">
+                <p>
+                  <strong>Markus Gross</strong>
+                  <br>
+                  <small>Director<br>
+                @ Disney Research Zürich</small>
+                </p>
+              </div>
+            </div>
+          </div>
+
+        </div>
+        <div class="column is-one-third-tablet">
+          <div class="columns is-mobile">
+            <div class="column">
+              <img src="img/hp.png" width="100%">
+            </div>
+            <div class="column is-two-thirds">
+              <div class="content">
+                <p>
+                  <small><strong>Hanspeter Pfister</strong><br>
+                Professor<br>
+                @ Harvard University</small>
+                </p>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+    </div>
+    <br>
+    <section  id="nonlinear_narrative" class="section">
+      <div class="container">
+        <h1 class="title">Narrative Theory</h1>
+        <h2 class="subtitle">Nonlinear Narrative Telling a Story out of Chronological Order</h2>
+        <div class='content'>
+          <h3>Story vs Narrative
+          </h3>
+          While the word <em>story</em> is often used interchangeably with <em>narrative</em>, they have different definitions in the narrative theory<sup><a href="https://goo.gl/mXgJiC" target="_blank">[Ref]</a></sup>.
+          <strong class="has-text-grey-dark">Story is the content of a narrative (what is told)</strong>, consisting of a sequence of events (actions, happenings) in chronological order and existents (characters and settings).
+          <strong class="has-text-grey-dark">Narrative is an expression (how it is told)</strong>, concerning about how the content is presented to readers (narrative voices, styles, plots).
+           Strictly speaking, we only see the story through narrative and thus it is the narrative that determines our perception of story.
+
+          <h3>Nonlinear Narrative</h3>
+          A nonlinear narrative is a <strong class="has-text-grey-dark">storytelling technique describing events in a
+story out of chronological order</strong>, such that the relationship among the
+events does not follow the original causality sequence. For example,
+a narrative can withhold information to maintain a sense of mystery,
+to keep tension high, and to keep the audience interested. Eventually,
+the narrative can flash back to the beginning of the story, releasing
+the tension. Such nonlinear narrative techniques are widely used in
+various types of storytelling genres, including literature, theater, movies,
+graphic novels, as well as hypertexts and other computer-mediated
+genres such as video games.
+<figure class="image" style="margin-left:0; margin-right:0">
+<img src="img/movies.jpg">
+</figure>
+
+          <h3>Nonlinear Narrative Patterns</h3>
+
+          <p>According to <a href="https://goo.gl/wkgygG" target="_blank">Gérard Genette</a>'s typology <sup><a href="https://goo.gl/pywENc" target="_blank">[Ref]</a></sup>, there are seven categories
+of the relationships between the temporal order of the events that are
+being told (story order) and the pseudo-temporal order of the narrative
+(narrative order).</p>
+
+          <div class="columns is-multiline">
+            <div class="column is-half">
+              <figure class="image is-128x128 is-pulled-left">
+                <img src="img/storycurves/linear.png">
+              </figure>
+              <strong class="has-text-grey-dark">Events are narrated in chronological order</strong>, i.e., there
+is temporal agreement in the order of the events between story and
+narrative. A unique order may not be specified as some events can
+happen simultaneously; they may be arranged in any order, relative to
+each other. Most movies belong to this category (e.g., natural disaster
+or folklore movies).
+            </div>
+            <div class="column is-half">
+              <figure class="image is-128x128 is-pulled-left">
+                <img src="img/storycurves/retrograde.png">
+              </figure>
+              <strong class="has-text-grey-dark">Events are narrated in reverse chronological order.</strong> For
+example, colored scenes in Christopher Nolan’s movie Memento are
+portrayed backward, while black-and-white scenes are in the original
+order. Another historical example is Iliad, an ancient Greek epic poem,
+that begins in the middle of the Trojan War.
+            </div>
+            <div class="column is-half">
+              <figure class="image is-128x128 is-pulled-left">
+                <img src="img/storycurves/flashback.png">
+              </figure>
+              <strong class="has-text-grey-dark">Events are narrated that took place earlier than what
+is being narrated.</strong> It is more commonly referred as flashbacks that
+are used to recount events that occurred in the past to fill in crucial
+backstory. For instance, flashbacks are a major part of the TV show
+Lost, portraying what happened in the life of the main characters before
+they were stranded on the island.
+            </div>
+            <div class="column is-half">
+              <figure class="image is-128x128 is-pulled-left">
+                <img src="img/storycurves/flashforward.png">
+              </figure>
+              <strong class="has-text-grey-dark">Events are narrated that take place later than what is
+being narrated.</strong> It is more commonly referred as flashforwards that are
+used to allude to events projected to occur in the future. For example,
+the film Arrival extensively uses prolepsis to show events that occur in
+the future
+            </div>
+            <div class="column is-half">
+              <figure class="image is-128x128 is-pulled-left">
+                <img src="img/storycurves/zigzag.png">
+              </figure>
+              <strong class="has-text-grey-dark">Events from a period are interleaved with those from another
+period as they are narrated in order</strong>, e.g., a narrative alternating
+between the past and present. The events that are paired must be semantically
+related, thus resulting in a temporal coordination similar to
+Syllepsis discussed later. For example, a past event is retrospective of
+a present event, and in the movie Memento chronological scenes are
+interleaved with reverse scenes.
+            </div>
+            <div class="column is-half">
+              <figure class="image is-128x128 is-pulled-left">
+                <img src="img/storycurves/grouped.png">
+              </figure>
+              <strong class="has-text-grey-dark">Events are grouped based on some criteria (e.g., spatial,
+temporal, thematic kinship).</strong> Thematic groupings are often used in the
+classical episodic novel where multiple stories are inserted and justified
+by analogy or contrast. Similar groupings are also found in films like
+Pulp Fiction and Love Actually that use multiple plotlines.
+            </div>
+          </div>
+          <p><strong class="has-text-grey-dark">Achrony</strong> is the last category in which events are <strong class="has-text-grey-dark">randomly ordered</strong>; thus the relationship between
+  the order in which events are narrated and the order in which
+  they occur is difficult or impossible to establish, possibly due to lack of
+  temporal information available from the narrative.</p>
+
+
+  <p>Others have gone on to further extend this taxonomy to address the
+  temporal irony that prevails in postmodern narratives such as <em>parallel timelines</em>, <em>time forks</em>
+  (e.g., Inception) and <em>time loops</em> (e.g., Interstellar)<sup><a href="https://goo.gl/msZrjy" target="_blank">[Ref]</a></sup></p>
+
+        </div>
+      </div>
+    </section>
+    <!-- <section id="story_curves" class="section">
+      <div class="container">
+        <div class="content">
+          <div class="columns">
+            <div class="column" >
+              <p class="title is-3">Pulp Fiction</p>
+              <p class="subtitle is-5">Thriller, Crime   <span class="separater">|</span>   October 1994  <span class="separater">|</span>    Directed by Quentin Tarantino   <span class="separater">|</span>   Nonlinearity 0.63   <span class="separater">|</span>
+                <a class="button is-small is-outlined is-primary" href="https://www.imdb.com/title/tt0110912" target="_blank">
+                  <span class="icon is-small">
+                    <i class="fa fa-film" aria-hidden="true"></i>
+
+                  </span>
+                  <span>iMDB</span>
+                </a>
+              </p>
+              <p style="text-align: justify;">
+              The following shows the story curve of the movie Pulp Fiction showing characters (colored segments), location (colored bands), and
+  day-time (gray backdrop). A nonlinearity index is calculated based on the degree of deviation of narrative order from actual story order.
+              </p>
+            </div>
+            <div class="column is-narrow">
+              <figure class="image" style="margin:0px;">
+                <img src="http://image.tmdb.org/t/p/w300/mte63qJaVnoxkkXbHkdFujBnBgd.jpg">
+              </figure>
+            </div>
+          </div>
+        </div>
+        <div id="pulp_fiction" class="storycurve">
+        </div>
+
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="container">
+        <div class="content">
+          <div class="columns">
+            <div class="column" >
+              <p class="title is-3">Memento</p>
+
+              <p class="subtitle is-5">Mystery, Thriller    <span class="separater">|</span>   October 2000  <span class="separater">|</span>    Directed by Christopher Nolan   <span class="separater">|</span>   Nonlinearity 0.81   <span class="separater">|</span>
+                <a class="button is-small is-outlined is-primary" href="https://www.imdb.com/title/tt0209144" target="_blank">
+                  <span class="icon is-small">
+                    <i class="fa fa-film" aria-hidden="true"></i>
+
+                  </span>
+                  <span>iMDB</span>
+                </a>
+              </p>
+            </div>
+            <div class="column is-3">
+              <div class="video-wrapper">
+                <iframe src="https://www.youtube.com/embed/E77LfnMI-34" frameborder="0" allowfullscreen></iframe>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div id="reservoir_dogs" class="storycurve">
+        </div>
+
+      </div>
+    </section> -->
+
+    <!-- <section class="section">
+      <div class="container">
+        <div class="content">
+          <div class="columns">
+            <div class="column" >
+              <p class="title is-3">Eternal Sunshine of the Spotless Mind</p>
+              <p class="subtitle is-5">Science Fiction, Drama, Romance     <span class="separater">|</span>   October 2004  <span class="separater">|</span>    Directed by Michel Gondry <span class="separater">|</span>   Nonlinearity 0.56   <span class="separater">|</span>
+                <a class="button is-small is-outlined is-primary" href="https://www.imdb.com/title/tt0338013" target="_blank">
+                  <span class="icon is-small">
+                    <i class="fa fa-film" aria-hidden="true"></i>
+
+                  </span>
+                  <span>iMDB</span>
+                </a>
+              </p>
+              <p style="text-align: justify;">
+
+              </p>
+            </div>
+            <div class="column is-narrow">
+              <figure class="image" style="margin:0px;">
+                <img src="http://image.tmdb.org/t/p/w300/e1uECwkwbD5Zpm9Gc6eb5mbG4C4.jpg">
+              </figure>
+            </div>
+          </div>
+        </div>
+        <div id="eternal_sunshine" class="storycurve">
+        </div>
+      </div>
+    </section> -->
+
+
+    <section class="section" id="story_curves">
+      <div class="container">
+        <h1 class="title">Story Curves</h1>
+        <h2 class="subtitle">Visualizing and Communicating Nonlinear Narratives</h2>
+        <div class="content">
+          <p>
+            A story curve provides a succinct visual summary of the order of scenes (events) in the nonlinear narrative of a movie.
+            The events  are visualized as points in a 2-dimensional plot according to their order in the narrative (horizontally, left-to-right) and their chronological order in the story (vertically, top-down). As users rearrange scenes
+into their chronological order, nonlinear narrative patterns become evident through the meandering shape of the story curve that connects
+scenes in both narrative and story order. A similar visualization has been used by the New York Times <sup><a href="https://goo.gl/HM928D" target="_blank">Ref</a></sup> to visualize the narration in movie trailers.
+ Our story curves are the first scientific investigation and
+systematic exploration of this visualization technique. In addition, we encode additional story information such as characters, places,
+and periods of the day. Characters are represented using different colored curves, which communicate the number of characters in a
+scene through the thickness of the curve segment. Places are encoded
+as bands surrounding character curves, while day times are represented
+using vertical backdrops in the background.
+          </p>
+
+        <div class="columns is-centered">
+          <div class="column is-half" >
+            <video width="100%" poster="img/construction.jpg" controls>
+              <source src="video/construction.mp4" type="video/mp4"> Your browser does not support the video tag.
+            </video>
+            <small>: A schematic diagram showing how a story curve is constructed from a sequence of events in story and narrative order. </small>
+          </div>
+        </div>
+
+        <p>
+          We created story curves for 10 popular nonlinear
+          narrative movies: <em>Memento, Pulp Fiction, Eternal Sunshine of the
+          Spotless Mind, The Usual Suspects, Reservoir Dogs, Annie Hall, 500
+          Days of Summer, 12 Monkeys, Fight Club, and Prestige</em>. We gathered
+          the movie scripts from a public database <sup><a href="http://www.imsdb.com/" target="_blank">Ref</a></sup>and manually restored the
+          story order of the scenes in each movie using Story Explorer.
+        </p>
+        </div>
+        <div class="columns">
+          <div class="column is-half" >
+            <div class="columns">
+              <div class="column" >
+                <p class="title is-4 is-spaced">Pulp Fiction</p>
+                <p class="subtitle is-6">Thriller, Crime   <span class="separater">|</span>   October 1994  <span class="separater">|</span>    Directed by Quentin Tarantino   <span class="separater">|</span>   Nonlinearity 0.63   <span class="separater">|</span>
+                  <a class="button is-small is-outlined is-primary" href="https://www.imdb.com/title/tt0110912" target="_blank">
+                    <span class="icon is-small">
+                      <i class="fa fa-film" aria-hidden="true"></i>
+
+                    </span>
+                    <span>iMDB</span>
+                  </a>
+                  <span class="separater">|</span>
+                  <a class="button is-small is-outlined is-primary" onclick="togglePattern('pulp_fiction', this)">
+                    Show Patterns
+                  </a>
+                </p>
+              </div>
+              <div class="column is-one-third">
+                <div class="pretty-embed"
+                  data-pe-videoid='s7EdQ4FqbhY'
+                  data-pe-fitvids="true"
+                  data-pe-show-info='false'
+                  data-pe-custom-preview-image='http://image.tmdb.org/t/p/w300/mte63qJaVnoxkkXbHkdFujBnBgd.jpg'>
+                </div>
+              </div>
+            </div>
+            <figure id="pulp_fiction_pattern" class="image" style="display:none">
+              <img src="img/storycurves/pulpfiction_richview.png">
+            </figure>
+            <div id="pulp_fiction" class="storycurve">
+            </div>
+          </div>
+          <div class="column is-half" >
+            <div class="columns">
+              <div class="column" >
+                <p class="title is-4 is-spaced">Reservoir Dogs</p>
+                <p class="subtitle is-6">Crime, Thriller  <span class="separater">|</span>  June 1992  <span class="separater">|</span>    Directed by Quentin Tarantino   <span class="separater">|</span>   Nonlinearity 0.92   <span class="separater">|</span>
+                  <a class="button is-small is-outlined is-primary" href="https://www.imdb.com/title/tt0105236" target="_blank">
+                    <span class="icon is-small">
+                      <i class="fa fa-film" aria-hidden="true"></i>
+
+                    </span>
+                    <span>iMDB</span>
+                  </a>
+                  <span class="separater">|</span>
+                  <a class="button is-small is-outlined is-primary" onclick="togglePattern('reservoir_dogs', this)">
+                    Show Patterns
+                  </a>
+                </p>
+              </div>
+              <div class="column is-one-third">
+                <div class="pretty-embed"
+                  data-pe-videoid='vayksn4Y93A'
+                  data-pe-fitvids="true"
+                  data-pe-show-info='false'
+                  data-pe-custom-preview-image='http://image.tmdb.org/t/p/w300/gjOiE5EYH5sqcJYlSDZnVWRMgNV.jpg'>
+                </div>
+              </div>
+            </div>
+            <figure id="reservoir_dogs_pattern" class="image" style="display:none">
+              <img src="img/storycurves/reservoir_dogs_richview.png">
+            </figure>
+            <div id="reservoir_dogs" class="storycurve">
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+    <section class="section">
+      <div class="container">
+        <div class="columns">
+          <div class="column is-half" >
+            <div class="columns">
+              <div class="column" >
+                <p class="title is-4 is-spaced">Eternal Sunshine of the Spotless Mind</p>
+                <p class="subtitle is-6">Science Fiction, Drama, Romance  <span class="separater">|</span>  March 2004   <span class="separater">|</span>    Directed by Michel Gondry <span class="separater">|</span>   Nonlinearity 0.56   <span class="separater">|</span>
+                  <a class="button is-small is-outlined is-primary" href="https://www.imdb.com/title/tt0105236" target="_blank">
+                    <span class="icon is-small">
+                      <i class="fa fa-film" aria-hidden="true"></i>
+
+                    </span>
+                    <span>iMDB</span>
+                  </a>
+                  <span class="separater">|</span>
+                  <a class="button is-small is-outlined is-primary" onclick="togglePattern('eternal_sunshine', this)">
+                    Show Patterns
+                  </a>
+                </p>
+              </div>
+              <div class="column is-one-third">
+                <div class="pretty-embed"
+                  data-pe-videoid='GBEke6JixyE'
+                  data-pe-fitvids="true"
+                  data-pe-show-info='false'
+                  data-pe-custom-preview-image='http://image.tmdb.org/t/p/w300/e1uECwkwbD5Zpm9Gc6eb5mbG4C4.jpg'>
+                  <!-- <iframe src="https://www.youtube.com/embed/E77LfnMI-34" frameborder="0" allowfullscreen></iframe> -->
+                </div>
+              </div>
+            </div>
+            <figure id="eternal_sunshine_pattern" class="image" style="display:none">
+              <img src="img/storycurves/eternal_richview.png">
+            </figure>
+            <div id="eternal_sunshine" class="storycurve">
+            </div>
+          </div>
+          <div class="column is-half" >
+            <div class="columns">
+              <div class="column" >
+                <p class="title is-4 is-spaced">The Usual Suspects</p>
+                <p class="subtitle is-6">Drama, Crime, Thriller <span class="separater">|</span>  March 1995   <span class="separater">|</span>    Directed by Bryan Singer <span class="separater">|</span>   Nonlinearity 0.55   <span class="separater">|</span>
+                  <a class="button is-small is-outlined is-primary" href="https://www.imdb.com/title/tt0114814" target="_blank">
+                    <span class="icon is-small">
+                      <i class="fa fa-film" aria-hidden="true"></i>
+
+                    </span>
+                    <span>iMDB</span>
+                  </a>
+                  <span class="separater">|</span>
+                  <a class="button is-small is-outlined is-primary" onclick="togglePattern('usual_suspects', this)">
+                    Show Patterns
+                  </a>
+                </p>
+              </div>
+              <div class="column is-one-third">
+                <div class="pretty-embed"
+                  data-pe-videoid='oiXdPolca5w'
+                  data-pe-fitvids="true"
+                  data-pe-show-info='false'
+                  data-pe-custom-preview-image='http://image.tmdb.org/t/p/w300/c7e3nH3wtSBDrHRB63onrGptl6D.jpg'>
+                </div>
+              </div>
+            </div>
+            <figure id="usual_suspects_pattern" class="image" style="display:none">
+              <img src="img/storycurves/usual_suspects_richview.png">
+            </figure>
+            <div id="usual_suspects" class="storycurve">
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+    <section class="section">
+      <div class="container">
+        <div class="columns">
+          <div class="column is-half" >
+            <div class="columns">
+              <div class="column" >
+                <p class="title is-4 is-spaced">12 Monkeys</p>
+                <p class="subtitle is-6">Science Fiction, Thriller, Mystery <span class="separater">|</span>  December 1995 <span class="separater">|</span>    Directed by Terry Gilliam <span class="separater">|</span>   Nonlinearity 0.52   <span class="separater">|</span>
+                  <a class="button is-small is-outlined is-primary" href="https://www.imdb.com/title/tt0114746" target="_blank">
+                    <span class="icon is-small">
+                      <i class="fa fa-film" aria-hidden="true"></i>
+                    </span>
+                    <span>iMDB</span>
+                  </a>
+                  <span class="separater">|</span>
+                  <a class="button is-small is-outlined is-primary" onclick="togglePattern('monkeys', this)">
+                    Show Patterns
+                  </a>
+                </p>
+              </div>
+              <div class="column is-one-third">
+                <div class="pretty-embed"
+                  data-pe-videoid='15s4Y9ffW_o'
+                  data-pe-fitvids="true"
+                  data-pe-show-info='false'
+                  data-pe-custom-preview-image='http://image.tmdb.org/t/p/w300/6KXbhaxkgExC5EdDqAzRinhmoZ8.jpg'>
+                </div>
+              </div>
+            </div>
+            <figure id="monkeys_pattern" class="image" style="display:none">
+              <img src="img/storycurves/12monkeys_richview.png">
+            </figure>
+            <div id="monkeys" class="storycurve">
+            </div>
+          </div>
+          <div class="column is-half" >
+            <div class="columns">
+              <div class="column" >
+                <p class="title is-4 is-spaced">Fight Club</p>
+                <p class="subtitle is-6">Drama <span class="separater">|</span> October 1999   <span class="separater">|</span> Directed by David Fincher <span class="separater">|</span> Nonlinearity 0.03 <span class="separater">|</span>
+                  <a class="button is-small is-outlined is-primary" href="https://www.imdb.com/title/tt0137523" target="_blank">
+                    <span class="icon is-small">
+                      <i class="fa fa-film" aria-hidden="true"></i>
+                    </span>
+                    <span>iMDB</span>
+                  </a>
+                  <span class="separater">|</span>
+                  <a class="button is-small is-outlined is-primary" onclick="togglePattern('fight_club', this)">
+                    Show Patterns
+                  </a>
+                </p>
+              </div>
+              <div class="column is-one-third">
+                <div class="pretty-embed"
+                  data-pe-videoid='SUXWAEX2jlg'
+                  data-pe-fitvids="true"
+                  data-pe-show-info='false'
+                  data-pe-custom-preview-image='http://image.tmdb.org/t/p/w300/8uO0gUM8aNqYLs1OsTBQiXu0fEv.jpg'>
+                </div>
+              </div>
+            </div>
+            <figure id="fight_club_pattern" class="image" style="display:none">
+              <img src="img/storycurves/fightclub_richview.png">
+            </figure>
+            <div id="fight_club" class="storycurve">
+            </div>
+          </div>
+        </div>
+        <div class="columns">
+          <div class="column is-half" >
+            <div class="content">
+              <div class="columns">
+                <div class="column" >
+                  <p class="title is-3">Memento</p>
+
+                  <p class="subtitle is-5">Mystery, Thriller    <span class="separater">|</span>   October 2000  <span class="separater">|</span>    Directed by Christopher Nolan   <span class="separater">|</span>   Nonlinearity 0.81   <span class="separater">|</span>
+                    <a class="button is-small is-outlined is-primary" href="https://www.imdb.com/title/tt0209144" target="_blank">
+                      <span class="icon is-small">
+                        <i class="fa fa-film" aria-hidden="true"></i>
+
+                      </span>
+                      <span>iMDB</span>
+                    </a>
+                    <span class="separater">|</span>
+                    <a class="button is-small is-outlined is-primary" onclick="togglePattern('memento', this)">
+                      Show Patterns
+                    </a>
+                  </p>
+                  <!-- <p style="text-align: justify;">
+
+                  </p>
+                  <figure class="image" style="margin:0px;">
+                    <img src="http://image.tmdb.org/t/p/w300/oBUznaSdjkY3HtQUzAxgdIZqh4w.jpg">
+                  </figure> -->
+                </div>
+                <div class="column is-one-third">
+                  <div id="memento-video" class="pretty-embed"
+                    data-pe-videoid='E77LfnMI-34'
+                    data-pe-fitvids="true"
+                    data-pe-show-info='false'
+                    data-pe-custom-preview-image='http://image.tmdb.org/t/p/w300/oBUznaSdjkY3HtQUzAxgdIZqh4w.jpg'>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <figure id="memento_pattern" class="image" style="display:none">
+              <img src="img/storycurves/memento.png">
+            </figure>
+            <div id="memento" class="storycurve">
+            </div>
+          </div>
+          <div class="column is-half" >
+            <div class="columns">
+              <div class="column" >
+                <p class="title is-4 is-spaced">500 Days of Summer</p>
+                <p class="subtitle is-6">Comedy, Drama, Romance <span class="separater">|</span> July 2009 <span class="separater">|</span> Directed by Marc Webb <span class="separater">|</span> Nonlinearity 0.31 <span class="separater">|</span>
+                  <a class="button is-small is-outlined is-primary" href="https://www.imdb.com/title/tt1022603" target="_blank">
+                    <span class="icon is-small">
+                      <i class="fa fa-film" aria-hidden="true"></i>
+                    </span>
+                    <span>iMDB</span>
+                  </a>
+                  <span class="separater">|</span>
+                  <a class="button is-small is-outlined is-primary" onclick="togglePattern('days_of_summer', this)">
+                    Show Patterns
+                  </a>
+                </p>
+              </div>
+              <div class="column is-one-third">
+
+                <div class="pretty-embed"
+                  data-pe-videoid='PsD0NpFSADM'
+                  data-pe-fitvids="true"
+                  data-pe-show-info='false'
+                  data-pe-custom-preview-image='http://image.tmdb.org/t/p/w300/yYw9cVdRJ4zzwxM2cTDXfT6JI6E.jpg'>
+                </div>
+              </div>
+            </div>
+            <figure id="days_of_summer_pattern" class="image" style="display:none">
+              <img src="img/storycurves/500daysofsummer.png">
+            </figure>
+            <div id="days_of_summer" class="storycurve">
+            </div>
+          </div>
+
+        </div>
+        <div class="columns">
+
+          <div class="column is-half" >
+            <div class="columns">
+              <div class="column" >
+                <p class="title is-4 is-spaced">Prestige</p>
+                <p class="subtitle is-6">Drama, Mystery, Thriller   <span class="separater">|</span> October 2006 <span class="separater">|</span> Directed by Christopher Nolan <span class="separater">|</span> Nonlinearity 0.39 <span class="separater">|</span>
+                  <a class="button is-small is-outlined is-primary" href="https://www.imdb.com/title/tt0482571" target="_blank">
+                    <span class="icon is-small">
+                      <i class="fa fa-film" aria-hidden="true"></i>
+                    </span>
+                    <span>iMDB</span>
+                  </a>
+                  <span class="separater">|</span>
+                  <a class="button is-small is-outlined is-primary" onclick="togglePattern('prestige', this)">
+                    Show Patterns
+                  </a>
+                </p>
+              </div>
+              <div class="column is-one-third">
+                <div class="pretty-embed"
+                  data-pe-videoid='ijXruSzfGEc'
+                  data-pe-fitvids="true"
+                  data-pe-show-info='false'
+                  data-pe-custom-preview-image='http://image.tmdb.org/t/p/w300/c5o7FN2vzI7xlU6IF1y64mgcH9E.jpg'>
+                </div>
+              </div>
+            </div>
+            <figure id="prestige_pattern" class="image" style="display:none">
+              <img src="img/storycurves/prestige.png">
+            </figure>
+            <div id="prestige" class="storycurve">
+            </div>
+          </div>
+          <div class="column is-half" >
+            <div class="columns">
+              <div class="column" >
+                <p class="title is-4 is-spaced">Annie Hall</p>
+                <p class="subtitle is-6">Comedy, Drama, Romance <span class="separater">|</span>  April 1977   <span class="separater">|</span> Directed by Woody Allen   <span class="separater">|</span> Nonlinearity 0.31 <span class="separater">|</span>
+                  <a class="button is-small is-outlined is-primary" href="https://www.imdb.com/title/tt0075686" target="_blank">
+                    <span class="icon is-small">
+                      <i class="fa fa-film" aria-hidden="true"></i>
+                    </span>
+                    <span>iMDB</span>
+                  </a>
+                  <span class="separater">|</span>
+                  <a class="button is-small is-outlined is-primary" onclick="togglePattern('annie_hall', this)">
+                    Show Patterns
+                  </a>
+                </p>
+              </div>
+              <div class="column is-one-third">
+                <div class="pretty-embed"
+                  data-pe-videoid='OqVgCfZX-yE'
+                  data-pe-fitvids="true"
+                  data-pe-show-info='false'
+                  data-pe-custom-preview-image='http://image.tmdb.org/t/p/w300/8iNt5LGxpX9XeNWJgjx17xfTT7u.jpg'>
+                </div>
+              </div>
+            </div>
+            <figure id="annie_hall_pattern" class="image" style="display:none">
+              <img src="img/storycurves/annie_hall_richview.png">
+            </figure>
+            <div id="annie_hall" class="storycurve">
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+    <section class="section" id="story_explorer">
+      <div class="container">
+        <h1 class="title">Story Explorer</h1>
+        <h2 class="subtitle">Exploring Nonlinear Narratives in Movies using Story Curves</h2>
+        <div class="content">
+          <p>
+            Story Explorer processes a movie script, extracts story elements
+(scenes, characters, settings), and visualizes the narrative of the movie
+alongside the script text. It supports the curation of the chronological
+order of scenes and enables close reading of the script in both story and
+narrative order.
+          </p>
+        </div>
+        <iframe width="100%" style="min-height:800px;" src="http://story.namwkim.org"></iframe>
+      </div>
+    </section>
+    <section class="section" id="#data_code">
+      <div class="container">
+        <h1 class="title">Data & Code</h1>
+        <h2 class="subtitle">Use your own data to  </h2>
+        <div class="content">
+          <p>
+          </p>
+        </div>
+      </div>
+    </section>
+    <!-- <script src="https://unpkg.com/vue"></script> -->
+    <script type="text/javascript" src="https://d3js.org/d3.v4.min.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/d3-tip/0.7.1/d3-tip.min.js"></script>
+    <script  src="https://code.jquery.com/jquery-3.2.1.min.js"
+  integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4="
+  crossorigin="anonymous"></script>
+    <script type="text/javascript" src="http://cdnjs.cloudflare.com/ajax/libs/jquery.waitforimages/1.5.0/jquery.waitforimages.min.js"></script>
+    <!-- <script src="https://unpkg.com/vue"></script> -->
+    <script src='https://cdn.rawgit.com/mike-zarandona/PrettyEmbed.js/master/jquery.prettyembed.min.js'></script>
+<script src='http://cdnjs.cloudflare.com/ajax/libs/fitvids/1.1.0/jquery.fitvids.min.js'></script>
+    <!-- <script src="js/d3-annotation.min.js"></script> -->
+    <script src="../dist/storycurve.js"></script>
+    <script src="js/index.js"></script>
+    <script src="js/draw_storycurves.js"></script>
 </body>
 
 </html>
