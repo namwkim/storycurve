@@ -1,1 +1,1 @@
-export {default as StoryCurve} from './src/StoryCurve.js';
+export {default as storycurve} from './src/storycurve.js';
