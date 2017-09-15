@@ -1,6 +1,7 @@
 import css from 'rollup-plugin-css-only';
 import resolve from 'rollup-plugin-node-resolve';
 import babel from 'rollup-plugin-babel';
+import commonjs from 'rollup-plugin-commonjs';
 export default {
   input: 'src/storycurve.js',
   output: {
@@ -9,6 +10,7 @@ export default {
   },
   plugins: [
     resolve(),
+    commonjs(),
     css({ output: './dist/storycurve.css' }),
     babel({
       exclude: 'node_modules/**'
