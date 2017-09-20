@@ -9,9 +9,6 @@
 ### Story Explorer
 Story explorer is a system built using story curves to visually explore narrative structures of popular nonlinear films like Memento and Pulp Fiction. [Try it](storyexplorer.namwkim.org).
   
-![Story Explorer](http://storycurve.namwkim.org/img/storyexplorer.jpg)
-
-  
 ### Install
 **Dependencies**
 - [d3](https://d3js.org/) and [d3-tip](https://github.com/Caged/d3-tip)
@@ -128,4 +125,51 @@ The output of the code is the figure below. You can find the definitions of the 
 ![Pulp Fiction code outcome](http://storycurve.namwkim.org/img/pulp_fiction.png)
 
 ### API Reference
-TBD
+
+<a name="x" href="#x">#</a> _vis_.**x**([_accessor_])
+
+<a name="y" href="#y">#</a> _vis_.**y**([_accessor_])
+
+<a name="size" href="#size">#</a> _vis_.**size**([_accessor_])
+
+<a name="children" href="#children">#</a> _vis_.**children**([_accessor_])
+
+<a name="child" href="#child">#</a> _vis_.**child**([_accessor_])
+
+<a name="band" href="#band">#</a> _vis_.**band**([_accessor_])
+
+<a name="backdrop" href="#backdrop">#</a> _vis_.**backdrop**([_accessor_])
+
+<a name="showBand" href="#showBand">#</a> _vis_.**showBand**([_accessor_])
+
+<a name="showBackdrop" href="#showBackdrop">#</a> _vis_.**showBackdrop**([_accessor_])
+
+<a name="showChildren" href="#showChildren">#</a> _vis_.**showChildren**([_accessor_])
+
+<a name="zoomEnabled" href="#zoomEnabled">#</a> _vis_.**zoomEnabled**([_accessor_])
+
+<a name="yaxisTitle" href="#yaxisTitle">#</a> _vis_.**yaxisTitle**([_accessor_])
+
+<a name="xaxisTitle" href="#xaxisTitle">#</a> _vis_.**xaxisTitle**([_accessor_])
+
+<a name="tooltipFormat" href="#tooltipFormat">#</a> _vis_.**tooltipFormat**([_accessor_])
+
+<a name="xs" href="#xs">#</a> _vis_.**xs**([_accessor_])
+
+<a name="ys" href="#ys">#</a> _vis_.**ys**([_accessor_])
+
+<a name="backdropColorScale" href="#backdropColorScale">#</a> _vis_.**backdropColorScale**([_accessor_])
+
+<a name="bandColorScale" href="#bandColorScale">#</a> _vis_.**bandColorScale**([_accessor_])
+
+<a name="childColorScale" href="#childColorScale">#</a> _vis_.**childColorScale**([_accessor_])
+
+<a name="highlights" href="#highlights">#</a> _vis_.**highlights**([_accessor_])
+
+<a name="isHighlighted" href="#isHighlighted">#</a> _vis_.**isHighlighted**([_accessor_])
+
+<a name="width" href="#width">#</a> _vis_.**width**([_accessor_])
+
+<a name="height" href="#height">#</a> _vis_.**height**([_accessor_])
+
+<a name="on" href="#on">#</a> _vis_.**on**([_accessor_])
