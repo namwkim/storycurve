@@ -336,7 +336,7 @@ function tooltipFormat(d){
   var scene = d.orgData;
 
   var content = '<p>';
-  content += '<strong style="color:#757575">S, N = ' + d.xo + ', ' + d.yo + '</strong><br>';
+  content += '<strong style="color:#757575">N, S = ' + d.xo + ', ' + d.yo + '</strong><br>';
 
   scene.characters.map(function(c){
     content += ('<strong style="color:'+ childColor(c)+'">'+c+'</strong><br>');
