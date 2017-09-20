@@ -3,8 +3,14 @@
 - Demo: http://storycurve.namwkim.org/
 - If you have any quesiton, please feel free to contact: Nam Wook Kim, namwkim85@gmail.com
 
+![Story Explorer](http://storycurve.namwkim.org/img/storycurve_examples.png)
+
+
 ### Story Explorer
 Story explorer is a system built using story curves to visually explore narrative structures of popular nonlinear films like Memento and Pulp Fiction. [Try it](storyexplorer.namwkim.org).
+  
+![Story Explorer](http://storycurve.namwkim.org/img/storyexplorer.jpg)
+
   
 ### Install
 **Dependencies**
@@ -116,7 +122,10 @@ fetch('datasets/pulp_fiction_simple.json').then(function(response){
   }
 }
 ```
-The output of the code is the figure below. You can find the definitions of the functions used in the code above at the bottom of this [file]([here](https://github.com/namwkim/storycurve/blob/gh-pages/js/draw_storycurves.js).
+The output of the code is the figure below. You can find the definitions of the functions used in the code above at the bottom of this [file](https://github.com/namwkim/storycurve/blob/gh-pages/js/draw_storycurves.js).
+
+
+![Pulp Fiction code outcome](http://storycurve.namwkim.org/img/pulp_fiction.png)
 
 ### API Reference
 TBD
