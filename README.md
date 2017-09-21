@@ -224,7 +224,7 @@ vis.yaxisTitle('← Story order');
 ```
 
 
-<a name="xaxisTitle" href="#xaxisTitle">#</a> _vis_.**xaxisTitle**([_accessor_])
+<a name="xaxisTitle" href="#xaxisTitle">#</a> _vis_.**xaxisTitle**([_string_])
 
 Sets x-axis title. If a _string_ is not specified, returns the current title. The default is 'Narrative order →'':
 
@@ -232,24 +232,112 @@ Sets x-axis title. If a _string_ is not specified, returns the current title. Th
 vis.xaxisTitle('Narrative order →');
 ```
 
-<a name="tooltipFormat" href="#tooltipFormat">#</a> _vis_.**tooltipFormat**([_accessor_])
+<a name="tooltipFormat" href="#tooltipFormat">#</a> _vis_.**tooltipFormat**([_format_])
 
-<a name="xs" href="#xs">#</a> _vis_.**xs**([_accessor_])
+Sets the format of the tooptip. A data point corresponding to the mouse location is supplied to the callback. The default is just printing x and y orders:
 
-<a name="ys" href="#ys">#</a> _vis_.**ys**([_accessor_])
+```js
+vis.tooltipFormat(d=>{
+  let content = '<table>';
+  content += ('<tr><td><span style="color:#FBBD08">(X,Y)</span></td><td>&nbsp; ' + d.xo + ', ' + d.yo + '</td></tr>');
+  content += '</table>';
+  return content;
+});
+```
 
-<a name="backdropColorScale" href="#backdropColorScale">#</a> _vis_.**backdropColorScale**([_accessor_])
 
-<a name="bandColorScale" href="#bandColorScale">#</a> _vis_.**bandColorScale**([_accessor_])
+<a name="bandColorScale" href="#bandColorScale">#</a> _vis_.**bandColorScale**([_categorical_scale_])
 
-<a name="childColorScale" href="#childColorScale">#</a> _vis_.**childColorScale**([_accessor_])
+Sets and gets the color scale for band categorical metadata. It is a categorical color scale. The default palette is _['#eedaf1','#fad1df','#cfe8fc','#daddf1']_, means you need to set the domain for the 4 colors if [_showBand_](#showBand) is set _true_. You need to filter data beforehand by setting them to _null_ (e.g., setting all but top 4 to _null_). Otherwise, unknown categoriy is assigned _no color_. 
 
-<a name="highlights" href="#highlights">#</a> _vis_.**highlights**([_accessor_])
+```js
+var locations = rankMetadataBySceneSize(data.script_info, 'location', 4); //get top 4 locations
+vis.backdropColorScale.domain(locations);
+```
 
-<a name="isHighlighted" href="#isHighlighted">#</a> _vis_.**isHighlighted**([_accessor_])
+If you want to support more than 4 cateogories, you change the range of the scale:
+
+```js
+var locations = rankMetadataBySceneSize(data.script_info, 'location', 5); //get top 5 locations
+vis.backdropColorScale.domain(locations);
+vis.backdropColorScale().range(['#d7191c', '#fdae61', '#ffffbf', '#abd9e9', '#2c7bb6']);
+```
+
+<a name="backdropColorScale" href="#backdropColorScale">#</a> _vis_.**backdropColorScale**([_categorical_scale_])
+
+Sets and gets the color scale for backdrop categorical metadata. It is a categorical color scale. The default palette is _['#CFD8DC', '#90A4AE', '#607D8B']_, which means you need to set the domain for the 8 colors if [_showBackdrop_](#showBackdrop) is set _true_. You need to filter data beforehand by setting them to _null_ (e.g., setting all but top 3 to _null_). Otherwise, unknown categoriy is assigned _no color_. You can modify the scale as you want by changing the domain and range of the scale similar to [_bandColorScale_](#bandColorScale).
+
+
+<a name="childColorScale" href="#childColorScale">#</a> _vis_.**childColorScale**([_categorical_scale_])
+
+Similar to other color scales, it allows you to modify the color scale of children. The default is _['#db2828','#f2711c','#fbbd08','#b5cc18','#21ba45','#00b5ad','#2185d0','#6435c9']_which means you need to set the domain for the 8 colors if [_showChildren_](#showChildren) is set _true_. You need to filter data beforehand by setting them to _null_ (e.g., setting all but top 8 to _null_). Otherwise, unknown categoriy is assigned _'#9E9E9E'_. You can modify the scale as you want by changing the domain and range of the scale similar to [_bandColorScale_](#bandColorScale).
+
+
+<a name="highlights" href="#highlights">#</a> _vis_.**highlights**([_highlights_])
+
+Immediately highlights the elements specified. It is used [_isHighlighted_](#isHighlighted), which checks if a data point needs to be highlighted. This is used in Story Explorer, when a user selectively highlights characters or locations, etc. An example of the input can be as below:
+```js
+vis.highlights([
+  {
+    type:'child',
+    filter:'Jules'
+    
+  },
+  {
+    type:''band',
+    filter: 'Morning'
+   }
+])
+```
+This filters a child named 'Jules' and a band named 'Morning'. 
+
+<a name="isHighlighted" href="#isHighlighted">#</a> _vis_.**isHighlighted**([_checker_])
+
+It is used in conjuntion with [_highlights_](#highlights). _checker_ receives three arguments _target_, _d_, _highlights_:
+```js
+let highlightAll = function(target, d, highlights){
+  return target.data==null?false:(highlights.length==0? true:
+    highlights.some(h=>target.data==h.filter));
+}
+```
+The above function highlights all visual marks that match _highlights_. _checker_ is called for each child, band, and backdrop. _target_ contains _type_ to indicate the caller, i.e., 'child', 'band' or 'backdrop'. It also contains _data_ that contains a corresponding value, e.g., 'Jules'.
+
+You can use the following function to highlight co-occurrence. 
+
+```js
+let highlightCooccur = function(target, d, highlights){
+  return target.data==null?false:(highlights.length==0? true:
+    highlights.every(h=>
+      h.type=='characters'?d[h.type].includes(h.filter):
+        d.scene_metadata[h.type]==h.filter));
+};
+```
+
+For a use case, please refer to the code of Story Explorer ([link](https://github.com/namwkim/storyexplorer/blob/master/frontend/src/modules/vis/index.js)).
+
+This function will immediately highlight _highlights_, meaning that [_draw_](#draw) does not need to be called.
 
 <a name="width" href="#width">#</a> _vis_.**width**([_accessor_])
 
-<a name="height" href="#height">#</a> _vis_.**height**([_accessor_])
+Sets or gets the width of the visualization. When a new width is set, `vis.draw(data)` needs to be called again.
 
-<a name="on" href="#on">#</a> _vis_.**on**([_accessor_])
+<a name="height" href="#height">#</a> _vis_.**height**([_accessor_])
+Sets or gets the height of the visualization. When a new height is set, `vis.draw(data)` needs to be called again.
+
+<a name="draw" href="#draw">#</a> _vis_.**draw**([_data_])
+Draw or update a story curve with _data_. If any settings are updated, this function needs to be called with the same data.
+
+
+<a name="on" href="#on">#</a> _vis_.**on**([_name_, _listener_])
+Sets a listner for events in the story curve. Supported events include 'zoom', 'mouseover', 'mouseout', 'click' (i.e., _name_). _listener_ for 'mouseover', 'mouseout', and 'click' events receives _data_, _index_, _nodes_ as arguments, while 'zoom' receives _transform_ so that you can coordinate with other visualizations.
+
+```js
+let onZoom = function(transform){
+  othervis.forEach(vis=>vis.transform('transform', transform));
+};
+vis.on('zoom', onZoom);
+```
+<a name="transform" href="#transform">#</a> _vis_.**transform**([_op_, _param_])
+
+Reveals transform functions in [d3-zoom](https://github.com/d3/d3-zoom). _op_ can be any method of d3.zoom() such as '_scaleBy_' or '_translateBy_' and _param_ is the parameters of the operator.
+
