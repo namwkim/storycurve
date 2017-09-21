@@ -128,23 +128,84 @@ The output of the code is the figure below. You can find the definitions of the 
 
 <a name="x" href="#x">#</a> _vis_.**x**([_accessor_])
 
+Sets an accessor function for the horizontal position of a data point. If no _accessor_ is provided, returns the current accessor. The default accessor is as below:
+
+```js
+vis.x(d=>d.narrative_order);
+```
+
 <a name="y" href="#y">#</a> _vis_.**y**([_accessor_])
+
+Sets an accessor function for the vertical position of a data point. If no accessor is provided, returns the current accessor. The default accessor is as below:
+
+```js
+vis.x(d=>d.story_order);
+```
 
 <a name="size" href="#size">#</a> _vis_.**size**([_accessor_])
 
+Sets an accessor function for the size of a data point. If no accessor is provided, returns the current _accessor_. The default accessor is as below:
+
+```js
+vis.size(d=>d.scene_metadata.size);
+```
+
+
 <a name="children" href="#children">#</a> _vis_.**children**([_accessor_])
+
+Sets an accessor function for children of a data point. Child elements are vertically stacked. If no _accessor_ is provided, returns the current accessor. The default accessor is as below:
+
+```js
+vis.children(d=>d.characters);
+```
 
 <a name="child" href="#child">#</a> _vis_.**child**([_accessor_])
 
+Sets an accessor function for a child in the children list. That is, if the child object contains multiple attributes, it needs to be specified what attribute is used as a label for the child. If no _accessor_ is provided, returns the current accessor. The default accessor is as below:
+
+```js
+vis.child(child=>child);
+```
+
 <a name="band" href="#band">#</a> _vis_.**band**([_accessor_])
+
+Sets an accessor function for a first metadata for a data point which is visualized as a surrounding band. If the categories of the metadata are too many, it is desirable to filter them in advance as they can overload the visualization. If no _accessor_ is provided, returns the current accessor. The default accessor is as below:
+
+```js
+vis.band(d=>d.scene_metadata.location);
+```
 
 <a name="backdrop" href="#backdrop">#</a> _vis_.**backdrop**([_accessor_])
 
-<a name="showBand" href="#showBand">#</a> _vis_.**showBand**([_accessor_])
+Sets an accessor function for a second metadata for a data point which is visualized as a backdrop. If the categories of the metadata are too many, it is desirable to filter them in advance as they can overload the visualization. If no _accessor_ is provided, returns the current accessor. The default accessor is as below:
 
-<a name="showBackdrop" href="#showBackdrop">#</a> _vis_.**showBackdrop**([_accessor_])
+```js
+vis.band(d=>d.scene_metadata.time);
+```
 
-<a name="showChildren" href="#showChildren">#</a> _vis_.**showChildren**([_accessor_])
+<a name="showBand" href="#showBand">#</a> _vis_.**showBand**([ boolean ])
+
+Determins whether to show bands or not. If a _boolean_ is not specified, returns the current setting. The default is false:
+
+```js
+vis.showBand(false);
+```
+
+<a name="showBackdrop" href="#showBackdrop">#</a> _vis_.**showBackdrop**([ boolean ])
+
+Determins whether to show backdrops or not. If a _boolean_ is not specified, returns the current setting. The default is false:
+
+```js
+vis.showBackdrop(false);
+```
+
+<a name="showChildren" href="#showChildren">#</a> _vis_.**showChildren**([ boolean ])
+
+Determins whether to show children or not. If not true, shows a single visual mark per column. If a _boolean_ is not specified, returns the current setting. The default is false:
+
+```js
+vis.showChildren(false);
+```
 
 <a name="zoomEnabled" href="#zoomEnabled">#</a> _vis_.**zoomEnabled**([_accessor_])
 
