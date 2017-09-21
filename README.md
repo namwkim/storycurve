@@ -183,7 +183,7 @@ Sets an accessor function for a second metadata for a data point which is visual
 vis.band(d=>d.scene_metadata.time);
 ```
 
-<a name="showBand" href="#showBand">#</a> _vis_.**showBand**([ boolean ])
+<a name="showBand" href="#showBand">#</a> _vis_.**showBand**([_boolean_])
 
 Determins whether to show bands or not. If a _boolean_ is not specified, returns the current setting. The default is false:
 
@@ -191,7 +191,7 @@ Determins whether to show bands or not. If a _boolean_ is not specified, returns
 vis.showBand(false);
 ```
 
-<a name="showBackdrop" href="#showBackdrop">#</a> _vis_.**showBackdrop**([ boolean ])
+<a name="showBackdrop" href="#showBackdrop">#</a> _vis_.**showBackdrop**([_boolean_])
 
 Determins whether to show backdrops or not. If a _boolean_ is not specified, returns the current setting. The default is false:
 
@@ -199,7 +199,7 @@ Determins whether to show backdrops or not. If a _boolean_ is not specified, ret
 vis.showBackdrop(false);
 ```
 
-<a name="showChildren" href="#showChildren">#</a> _vis_.**showChildren**([ boolean ])
+<a name="showChildren" href="#showChildren">#</a> _vis_.**showChildren**([_boolean_])
 
 Determins whether to show children or not. If not true, shows a single visual mark per column. If a _boolean_ is not specified, returns the current setting. The default is false:
 
@@ -207,11 +207,30 @@ Determins whether to show children or not. If not true, shows a single visual ma
 vis.showChildren(false);
 ```
 
-<a name="zoomEnabled" href="#zoomEnabled">#</a> _vis_.**zoomEnabled**([_accessor_])
+<a name="zoomEnabled" href="#zoomEnabled">#</a> _vis_.**zoomEnabled**([_boolean_])
 
-<a name="yaxisTitle" href="#yaxisTitle">#</a> _vis_.**yaxisTitle**([_accessor_])
+Sets whether to enable zooming and panning. If a _boolean_ is not specified, returns the current setting. The default is true:
+
+```js
+vis.zoomEnabled(true);
+```
+
+<a name="yaxisTitle" href="#yaxisTitle">#</a> _vis_.**yaxisTitle**([_string_])
+
+Sets y-axis title. If a _string_ is not specified, returns the current title. The default is '← Story order'':
+
+```js
+vis.yaxisTitle('← Story order');
+```
+
 
 <a name="xaxisTitle" href="#xaxisTitle">#</a> _vis_.**xaxisTitle**([_accessor_])
+
+Sets x-axis title. If a _string_ is not specified, returns the current title. The default is 'Narrative order →'':
+
+```js
+vis.xaxisTitle('Narrative order →');
+```
 
 <a name="tooltipFormat" href="#tooltipFormat">#</a> _vis_.**tooltipFormat**([_accessor_])
 
