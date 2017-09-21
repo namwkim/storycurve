@@ -7,7 +7,7 @@
 
 
 ### Story Explorer
-Story explorer is a system built using story curves to visually explore narrative structures of popular nonlinear films like Memento and Pulp Fiction. [Try it](storyexplorer.namwkim.org).
+Story explorer is a system built using story curves to visually explore narrative structures of popular nonlinear films like Memento and Pulp Fiction. [Try it](http://storyexplorer.namwkim.org).
   
 ### Install
 **Dependencies**
