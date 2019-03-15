@@ -1,6 +1,6 @@
 {
   "name": "storycurve",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Visualization method for comparing two temporal orders with additional metadata",
   "keywords": [
     "visualization",
